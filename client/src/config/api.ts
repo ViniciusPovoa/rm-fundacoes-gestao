@@ -3,7 +3,8 @@
  * Define a URL base e métodos para requisições HTTP
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/backend/api.php';
+// Usar import.meta.env para Vite (não process.env)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/backend/api.php';
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -302,3 +303,6 @@ class ApiClient {
 }
 
 export default new ApiClient(API_BASE_URL);
+
+// Log para debug
+console.log('[API Config] Base URL:', API_BASE_URL);
