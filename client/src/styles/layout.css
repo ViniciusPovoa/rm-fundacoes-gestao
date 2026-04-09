@@ -121,8 +121,12 @@
 
 /* Sidebar Footer */
 .sidebar-footer {
-  padding: 20px 12px;
+  padding: 16px 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .user-info {
@@ -132,6 +136,8 @@
   padding: 12px;
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.1);
+  flex: 1;
+  min-width: 0;
 }
 
 .avatar {
@@ -172,6 +178,30 @@
 
 .sidebar.closed .user-details {
   display: none;
+}
+
+.logout-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.logout-btn:active {
+  transform: scale(0.95);
 }
 
 /* Main Content */

@@ -56,6 +56,14 @@
 - [x] Criar relatório financeiro geral (PDF)
 - [x] Implementar exportação de tabelas em PDF
 - [x] Implementar exportação de dados em CSV/Excel
+## Autenticação
+- [x] Criar página de Login com formulário
+- [x] Implementar autenticação local (admin/admin123)
+- [x] Adicionar token/sessão no localStorage
+- [x] Proteger rotas com PrivateRoute
+- [x] Adicionar botão de logout
+- [x] Redirecionar para login se não autenticado
+
 ## Integração e Testes
 - [x] Testar conexão Frontend-Backend
 - [x] Testar todos os CRUDs
