@@ -64,6 +64,44 @@
 - [x] Adicionar botão de logout
 - [x] Redirecionar para login se não autenticado
 
+## Melhorias - Dashboard Avançada
+- [ ] Adicionar gráficos de receita vs despesa por período
+- [ ] Criar gráfico de margem de lucro por obra
+- [ ] Implementar gráfico de progresso de obras (% concluído)
+- [ ] Adicionar KPIs: receita total, despesa total, lucro líquido, ticket médio
+- [ ] Criar tabela de obras com status e filtros rápidos
+- [ ] Adicionar comparativo mês anterior vs mês atual
+- [ ] Implementar alertas de obras com prejuízo
+- [ ] Criar visão de fluxo de caixa
+
+## Melhorias - Gerador de Contratos
+- [ ] Criar página de geração de contratos
+- [ ] Implementar filtros de obras para seleção
+- [ ] Criar template de contrato profissional em PDF
+- [ ] Adicionar campos dinâmicos (cliente, obra, serviços, valores)
+- [ ] Implementar assinatura digital/eletrônica
+- [ ] Adicionar histórico de contratos gerados
+- [ ] Permitir customização de templates
+
+## Melhorias - Validações e Filtros
+- [ ] Adicionar validação de CPF/CNPJ
+- [ ] Implementar validação de email
+- [ ] Criar filtros avançados em todas as listagens
+- [ ] Adicionar busca por texto em listagens
+- [ ] Implementar páginação
+- [ ] Adicionar ordenação por colunas
+- [ ] Criar alertas de validação em formulários
+
+## Melhorias - Design e UX
+- [ ] Refatorar componentes com design system
+- [ ] Melhorar paleta de cores e tipografia
+- [ ] Adicionar loading states em todas as operações
+- [ ] Implementar toasts de sucesso/erro
+- [ ] Criar modais de confirmação
+- [ ] Adicionar animações suaves
+- [ ] Melhorar responsividade mobile
+- [ ] Adicionar dark mode
+
 ## Integração e Testes
 - [x] Testar conexão Frontend-Backend
 - [x] Testar todos os CRUDs

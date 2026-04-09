@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Menu, X, BarChart3, Users, Briefcase, Wrench, DollarSign, FileText, LogOut } from 'lucide-react';
+import { Menu, X, BarChart3, Users, Briefcase, Wrench, DollarSign, FileText, LogOut, File } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/layout.css';
 
@@ -27,7 +27,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/receitas', label: 'Receitas', icon: DollarSign },
     { path: '/equipamentos', label: 'Equipamentos', icon: Wrench },
     { path: '/vinculo-equipamentos', label: 'Vinculação', icon: Wrench },
-    { path: '/relatorios', label: 'Relatórios', icon: FileText },
+    { path: '/relatorios', label: 'Relatorios', icon: FileText },
+    { path: '/contratos', label: 'Contratos', icon: File },
   ];
 
   const isActive = (path: string) => {
