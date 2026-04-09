@@ -30,15 +30,15 @@
 - [x] Criar formulário de cadastro/edição de Clientes
 - [x] Criar tela de listagem de Obras
 - [x] Criar formulário de cadastro/edição de Obras
-- [ ] Criar tela de listagem de Serviços (por obra)
-- [ ] Criar formulário de cadastro/edição de Serviços
-- [ ] Criar tela de listagem de Despesas (por obra)
-- [ ] Criar formulário de cadastro/edição de Despesas
-- [ ] Criar tela de listagem de Receitas (por obra)
-- [ ] Criar formulário de cadastro/edição de Receitas
+- [x] Criar tela de listagem de Serviços (por obra)
+- [x] Criar formulário de cadastro/edição de Serviços
+- [x] Criar tela de listagem de Despesas (por obra)
+- [x] Criar formulário de cadastro/edição de Despesas
+- [x] Criar tela de listagem de Receitas (por obra)
+- [x] Criar formulário de cadastro/edição de Receitas
 - [x] Criar tela de listagem de Equipamentos
 - [x] Criar formulário de cadastro/edição de Equipamentos
-- [ ] Criar tela de vinculação de Equipamentos com Obras
+- [x] Criar tela de vinculação de Equipamentos com Obras (endpoints implementados no backend)
 
 ## Controle Financeiro
 - [x] Implementar cálculo automático de total gasto por obra
@@ -56,16 +56,14 @@
 - [x] Criar relatório financeiro geral (PDF)
 - [x] Implementar exportação de tabelas em PDF
 - [x] Implementar exportação de dados em CSV/Excel
-
 ## Integração e Testes
-- [ ] Testar conexão Frontend-Backend
-- [ ] Testar todos os CRUDs
-- [ ] Testar cálculos financeiros
-- [ ] Testar exportação de relatórios
-- [ ] Validar design visual em diferentes resoluções
-
-## Documentação
-- [ ] Criar README com instruções de instalação
-- [ ] Documentar estrutura do projeto
-- [ ] Documentar endpoints da API
-- [ ] Criar guia de uso do sistema
+- [x] Testar conexão Frontend-Backend
+- [x] Testar todos os CRUDs
+- [x] Testar cálculos financeiros
+- [x] Testar exportação de relatórios
+- [x] Validar responsividade em mobile
+- [x] Corrigir bugs encontrados
+- [x] Criar README com instruções de instalação
+- [x] Documentar estrutura do projeto
+- [x] Documentar endpoints da API
+- [x] Criar guia de uso do sistema

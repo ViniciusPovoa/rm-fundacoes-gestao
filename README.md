@@ -283,3 +283,138 @@ Para suporte técnico, entre em contato com a equipe de desenvolvimento.
 
 **RM Fundações - Sistema de Gestão de Obras**  
 Desenvolvido com ❤️ para otimizar a gestão de projetos de engenharia.
+
+
+## 📖 Guia de Uso do Sistema
+
+### Fluxo 1: Cadastrar um Cliente
+
+1. Acesse a página **Clientes** no menu lateral
+2. Clique em **"Novo Cliente"**
+3. Preencha os campos:
+   - Nome (obrigatório)
+   - Documento CPF/CNPJ (obrigatório)
+   - Email
+   - Telefone
+   - Endereço
+4. Clique em **"Criar Cliente"**
+
+### Fluxo 2: Criar uma Obra
+
+1. Acesse a página **Obras** no menu lateral
+2. Clique em **"Nova Obra"**
+3. Preencha os campos:
+   - Nome da obra (obrigatório)
+   - Cliente (selecione na lista)
+   - Data de Início (obrigatório)
+   - Data de Fim
+   - Status (Planejamento, Em Andamento, Finalizada)
+   - Localização
+4. Clique em **"Criar Obra"**
+
+### Fluxo 3: Registrar Serviços de uma Obra
+
+1. Acesse a página **Serviços** no menu lateral
+2. Selecione a obra desejada no dropdown
+3. Clique em **"Novo Serviço"**
+4. Preencha os campos:
+   - Tipo (Estaca, Sondagem, Escavação, Aterro, Outro)
+   - Valor Previsto (obrigatório)
+   - Valor Realizado (obrigatório)
+   - Descrição
+5. Clique em **"Criar Serviço"**
+6. A diferença entre valor realizado e previsto é calculada automaticamente
+
+### Fluxo 4: Registrar Despesas de uma Obra
+
+1. Acesse a página **Despesas** no menu lateral
+2. Selecione a obra desejada no dropdown
+3. Clique em **"Nova Despesa"**
+4. Preencha os campos:
+   - Tipo (Material, Mão de Obra, Equipamento, Transporte, Outro)
+   - Valor (obrigatório)
+   - Data (obrigatório)
+   - Descrição
+5. Clique em **"Criar Despesa"**
+
+### Fluxo 5: Registrar Receitas de uma Obra
+
+1. Acesse a página **Receitas** no menu lateral
+2. Selecione a obra desejada no dropdown
+3. Clique em **"Nova Receita"**
+4. Preencha os campos:
+   - Valor (obrigatório)
+   - Data (obrigatório)
+   - Descrição
+5. Clique em **"Criar Receita"**
+
+### Fluxo 6: Cadastrar Equipamentos
+
+1. Acesse a página **Equipamentos** no menu lateral
+2. Clique em **"Novo Equipamento"**
+3. Preencha os campos:
+   - Nome (obrigatório)
+   - Tipo (obrigatório)
+   - Custo de Uso em R$/dia (obrigatório)
+4. Clique em **"Criar Equipamento"**
+
+### Fluxo 7: Visualizar Dashboard
+
+1. Acesse a página **Dashboard** (primeira opção do menu)
+2. Visualize os KPIs:
+   - Total de Obras
+   - Total de Receitas
+   - Total de Despesas
+   - Lucro Total e Margem de Lucro
+3. Analise os gráficos:
+   - Receitas vs Despesas por Obra
+   - Lucro/Prejuízo por Obra
+4. Veja a distribuição de obras por status
+
+### Fluxo 8: Gerar Relatórios
+
+1. Acesse a página **Relatórios** no menu lateral
+2. Visualize o resumo geral com todos os indicadores
+3. Analise o detalhamento por obra
+4. Exporte os dados:
+   - **"Exportar como PDF"**: Gera um documento PDF com todos os dados
+   - **"Exportar como CSV"**: Baixa um arquivo CSV para abrir em Excel
+
+## 💡 Dicas de Uso
+
+- **Dashboard em tempo real**: Os dados são atualizados automaticamente quando você cria/edita/deleta registros
+- **Cálculos automáticos**: Lucro, prejuízo e totais são calculados automaticamente pelo sistema
+- **Navegação**: Use o menu lateral para acessar as diferentes seções
+- **Responsivo**: O sistema funciona em desktop, tablet e mobile
+- **Edição rápida**: Clique no ícone de edição para modificar qualquer registro
+- **Exclusão segura**: O sistema pede confirmação antes de deletar registros
+
+## 🎯 Casos de Uso Comuns
+
+### Acompanhar a Rentabilidade de uma Obra
+
+1. Vá para **Dashboard**
+2. Procure a obra na tabela "Detalhamento por Obra"
+3. Verifique os valores de Receitas, Despesas e Lucro/Prejuízo
+4. Compare com outras obras para identificar a mais lucrativa
+
+### Analisar Custos por Tipo de Despesa
+
+1. Vá para **Despesas**
+2. Selecione a obra
+3. Analise os diferentes tipos de despesa (Material, Mão de Obra, etc.)
+4. Identifique onde estão concentrados os custos
+
+### Gerar Relatório para Apresentação
+
+1. Vá para **Relatórios**
+2. Clique em **"Exportar como PDF"**
+3. O PDF será gerado com:
+   - Resumo geral do período
+   - Detalhamento de cada obra
+   - Gráficos de receita vs despesa
+   - Totalizações e margens
+
+---
+
+**Dúvidas?** Consulte a seção de Troubleshooting ou entre em contato com o suporte técnico.

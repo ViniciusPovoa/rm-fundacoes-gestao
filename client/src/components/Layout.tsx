@@ -15,7 +15,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/', label: 'Dashboard', icon: BarChart3 },
     { path: '/clientes', label: 'Clientes', icon: Users },
     { path: '/obras', label: 'Obras', icon: Briefcase },
+    { path: '/servicos', label: 'Serviços', icon: Wrench },
+    { path: '/despesas', label: 'Despesas', icon: DollarSign },
+    { path: '/receitas', label: 'Receitas', icon: DollarSign },
     { path: '/equipamentos', label: 'Equipamentos', icon: Wrench },
+    { path: '/vinculo-equipamentos', label: 'Vinculação', icon: Wrench },
     { path: '/relatorios', label: 'Relatórios', icon: FileText },
   ];
 

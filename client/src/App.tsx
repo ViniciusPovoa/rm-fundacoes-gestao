@@ -8,7 +8,11 @@ import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Clientes from "./pages/Clientes";
 import Obras from "./pages/Obras";
+import Servicos from "./pages/Servicos";
+import Despesas from "./pages/Despesas";
+import Receitas from "./pages/Receitas";
 import Equipamentos from "./pages/Equipamentos";
+import VinculoEquipamentos from "./pages/VinculoEquipamentos";
 import Relatorios from "./pages/Relatorios";
 
 function Router() {
@@ -18,7 +22,11 @@ function Router() {
         <Route path={"/"} component={Dashboard} />
         <Route path={"/clientes"} component={Clientes} />
         <Route path={"/obras"} component={Obras} />
+        <Route path={"/servicos"} component={Servicos} />
+        <Route path={"/despesas"} component={Despesas} />
+        <Route path={"/receitas"} component={Receitas} />
         <Route path={"/equipamentos"} component={Equipamentos} />
+        <Route path={"/vinculo-equipamentos"} component={VinculoEquipamentos} />
         <Route path={"/relatorios"} component={Relatorios} />
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />
