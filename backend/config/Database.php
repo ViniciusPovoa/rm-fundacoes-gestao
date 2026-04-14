@@ -6,8 +6,8 @@
 class Database {
     private $host = 'localhost';
     private $db = 'rm_fundacoes';
-    private $user = 'root';
-    private $password = '';
+    private $user = 'rm_fundacoes';
+    private $password = '123456';
     private $charset = 'utf8mb4';
     private $pdo;
 

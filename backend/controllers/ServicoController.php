@@ -12,6 +12,45 @@ class ServicoController {
         $this->validator = new Validator();
     }
 
+    private function prepararDadosServico($data, $isUpdate = false) {
+        $prepared = $data;
+
+        if (isset($prepared['tipo'])) {
+            $prepared['tipo'] = trim($prepared['tipo']);
+        }
+
+        if (isset($prepared['descricao'])) {
+            $prepared['descricao'] = trim($prepared['descricao']);
+        }
+
+        if (isset($prepared['unidade'])) {
+            $prepared['unidade'] = strtoupper(trim($prepared['unidade']));
+        }
+
+        $hasQuantidade = array_key_exists('quantidade', $prepared) && $prepared['quantidade'] !== '';
+        $hasPrecoUnitario = array_key_exists('preco_unitario', $prepared) && $prepared['preco_unitario'] !== '';
+
+        if ($hasQuantidade) {
+            $prepared['quantidade'] = (float) $prepared['quantidade'];
+        }
+
+        if ($hasPrecoUnitario) {
+            $prepared['preco_unitario'] = (float) $prepared['preco_unitario'];
+        }
+
+        if ($hasQuantidade && $hasPrecoUnitario) {
+            $prepared['valor_previsto'] = round($prepared['quantidade'] * $prepared['preco_unitario'], 2);
+        }
+
+        if (!$isUpdate && (!isset($prepared['valor_realizado']) || $prepared['valor_realizado'] === '')) {
+            $prepared['valor_realizado'] = $prepared['valor_previsto'] ?? 0;
+        } elseif (isset($prepared['valor_realizado']) && $prepared['valor_realizado'] !== '') {
+            $prepared['valor_realizado'] = (float) $prepared['valor_realizado'];
+        }
+
+        return $prepared;
+    }
+
     /**
      * GET /api/servicos
      * Listar todos os serviços
@@ -50,9 +89,14 @@ class ServicoController {
      */
     public function store($data) {
         try {
+            $data = $this->prepararDadosServico($data);
+
             $rules = [
                 'obra_id' => ['required', 'numeric'],
                 'tipo' => ['required', 'min:3', 'max:100'],
+                'unidade' => ['required', 'max:20'],
+                'quantidade' => ['required', 'numeric'],
+                'preco_unitario' => ['required', 'numeric'],
                 'descricao' => [],
                 'valor_previsto' => ['required', 'numeric'],
                 'valor_realizado' => ['numeric']
@@ -85,8 +129,13 @@ class ServicoController {
                 return;
             }
 
+            $data = $this->prepararDadosServico($data, true);
+
             $rules = [
                 'tipo' => ['min:3', 'max:100'],
+                'unidade' => ['max:20'],
+                'quantidade' => ['numeric'],
+                'preco_unitario' => ['numeric'],
                 'descricao' => [],
                 'valor_previsto' => ['numeric'],
                 'valor_realizado' => ['numeric']

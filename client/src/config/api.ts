@@ -4,7 +4,7 @@
  */
 
 // Usar import.meta.env para Vite (não process.env)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/backend/api.php';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:80/backend/api.php';
 
 interface ApiResponse<T = any> {
   success: boolean;

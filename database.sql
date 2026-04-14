@@ -49,6 +49,9 @@ CREATE TABLE servicos (
     obra_id INT NOT NULL,
     tipo VARCHAR(100) NOT NULL,
     descricao TEXT,
+    unidade VARCHAR(20) NOT NULL DEFAULT 'UN',
+    quantidade DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    preco_unitario DECIMAL(12, 2) NOT NULL DEFAULT 0,
     valor_previsto DECIMAL(12, 2) NOT NULL DEFAULT 0,
     valor_realizado DECIMAL(12, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -137,11 +140,11 @@ INSERT INTO obras (nome, cliente_id, localizacao, data_inicio, data_fim, status)
 ('Sondagem de Solo', 3, 'Rua Principal, 500, Rio de Janeiro - RJ', '2024-03-01', '2024-04-30', 'finalizada');
 
 -- Inserir serviços de exemplo
-INSERT INTO servicos (obra_id, tipo, descricao, valor_previsto, valor_realizado) VALUES
-(1, 'Estaca Hélice Contínua', 'Execução de 50 estacas hélice contínua', 150000.00, 145000.00),
-(1, 'Sondagem', 'Sondagem de solo para análise geotécnica', 25000.00, 24000.00),
-(2, 'Estaca Raiz', 'Execução de 30 estacas raiz', 90000.00, 88000.00),
-(3, 'Sondagem Profunda', 'Sondagem profunda até 50 metros', 35000.00, 35000.00);
+INSERT INTO servicos (obra_id, tipo, descricao, unidade, quantidade, preco_unitario, valor_previsto, valor_realizado) VALUES
+(1, 'Estaca Hélice Contínua', 'Execução de 50 estacas hélice contínua', 'UN', 50.00, 3000.00, 150000.00, 145000.00),
+(1, 'Sondagem', 'Sondagem de solo para análise geotécnica', 'MTS', 100.00, 250.00, 25000.00, 24000.00),
+(2, 'Estaca Raiz', 'Execução de 30 estacas raiz', 'UN', 30.00, 3000.00, 90000.00, 88000.00),
+(3, 'Sondagem Profunda', 'Sondagem profunda até 50 metros', 'MTS', 50.00, 700.00, 35000.00, 35000.00);
 
 -- Inserir despesas de exemplo
 INSERT INTO despesas (obra_id, tipo, descricao, valor, data) VALUES

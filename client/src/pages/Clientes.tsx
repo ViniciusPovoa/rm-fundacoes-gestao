@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import api from '../config/api';
+import { maskDocument, maskPhone, normalizeEmail, normalizeSingleLineText } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Cliente {
@@ -26,6 +27,10 @@ const Clientes: React.FC = () => {
     endereco: '',
   });
 
+  const resetForm = () => {
+    setFormData({ nome: '', telefone: '', email: '', documento: '', endereco: '' });
+  };
+
   useEffect(() => {
     fetchClientes();
   }, []);
@@ -45,12 +50,20 @@ const Clientes: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const submitData = {
+        nome: normalizeSingleLineText(formData.nome),
+        telefone: maskPhone(formData.telefone),
+        email: normalizeEmail(formData.email),
+        documento: maskDocument(formData.documento),
+        endereco: normalizeSingleLineText(formData.endereco),
+      };
+
       if (editingId) {
-        await api.updateCliente(editingId, formData);
+        await api.updateCliente(editingId, submitData);
       } else {
-        await api.createCliente(formData);
+        await api.createCliente(submitData);
       }
-      setFormData({ nome: '', telefone: '', email: '', documento: '', endereco: '' });
+      resetForm();
       setEditingId(null);
       setShowForm(false);
       fetchClientes();
@@ -60,7 +73,13 @@ const Clientes: React.FC = () => {
   };
 
   const handleEdit = (cliente: Cliente) => {
-    setFormData(cliente);
+    setFormData({
+      nome: cliente.nome ?? '',
+      telefone: maskPhone(cliente.telefone ?? ''),
+      email: cliente.email ?? '',
+      documento: maskDocument(cliente.documento ?? ''),
+      endereco: cliente.endereco ?? '',
+    });
     setEditingId(cliente.id);
     setShowForm(true);
   };
@@ -85,7 +104,7 @@ const Clientes: React.FC = () => {
       <div className="crud-header">
         <h1>Clientes</h1>
         <button className="btn btn-primary" onClick={() => {
-          setFormData({ nome: '', telefone: '', email: '', documento: '', endereco: '' });
+          resetForm();
           setEditingId(null);
           setShowForm(!showForm);
         }}>
@@ -112,6 +131,7 @@ const Clientes: React.FC = () => {
                   required
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, nome: normalizeSingleLineText(e.target.value) })}
                   placeholder="Nome do cliente"
                 />
               </div>
@@ -121,7 +141,7 @@ const Clientes: React.FC = () => {
                   type="text"
                   required
                   value={formData.documento}
-                  onChange={(e) => setFormData({ ...formData, documento: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, documento: maskDocument(e.target.value) })}
                   placeholder="CPF/CNPJ"
                 />
               </div>
@@ -130,7 +150,8 @@ const Clientes: React.FC = () => {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, email: normalizeEmail(e.target.value) })}
+                  onBlur={(e) => setFormData({ ...formData, email: normalizeEmail(e.target.value) })}
                   placeholder="email@example.com"
                 />
               </div>
@@ -139,8 +160,8 @@ const Clientes: React.FC = () => {
                 <input
                   type="tel"
                   value={formData.telefone}
-                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                  placeholder="(11) 9999-9999"
+                  onChange={(e) => setFormData({ ...formData, telefone: maskPhone(e.target.value) })}
+                  placeholder="(11) 99999-9999"
                 />
               </div>
               <div className="form-group full-width">
@@ -149,6 +170,7 @@ const Clientes: React.FC = () => {
                   type="text"
                   value={formData.endereco}
                   onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, endereco: normalizeSingleLineText(e.target.value) })}
                   placeholder="Endereço completo"
                 />
               </div>
@@ -163,7 +185,7 @@ const Clientes: React.FC = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingId(null);
-                  setFormData({ nome: '', telefone: '', email: '', documento: '', endereco: '' });
+                  resetForm();
                 }}
               >
                 Cancelar

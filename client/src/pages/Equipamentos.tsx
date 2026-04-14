@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import api from '../config/api';
+import { formatBRL, formatCurrencyFromNumber, maskCurrency, normalizeSingleLineText, parseCurrency } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Equipamento {
@@ -22,6 +23,10 @@ const Equipamentos: React.FC = () => {
     custo_uso: '',
   });
 
+  const resetForm = () => {
+    setFormData({ nome: '', tipo: '', custo_uso: '' });
+  };
+
   useEffect(() => {
     fetchEquipamentos();
   }, []);
@@ -42,8 +47,9 @@ const Equipamentos: React.FC = () => {
     e.preventDefault();
     try {
       const submitData = {
-        ...formData,
-        custo_uso: parseFloat(formData.custo_uso),
+        nome: normalizeSingleLineText(formData.nome),
+        tipo: normalizeSingleLineText(formData.tipo),
+        custo_uso: parseCurrency(formData.custo_uso),
       };
 
       if (editingId) {
@@ -51,7 +57,7 @@ const Equipamentos: React.FC = () => {
       } else {
         await api.createEquipamento(submitData);
       }
-      setFormData({ nome: '', tipo: '', custo_uso: '' });
+      resetForm();
       setEditingId(null);
       setShowForm(false);
       fetchEquipamentos();
@@ -64,7 +70,7 @@ const Equipamentos: React.FC = () => {
     setFormData({
       nome: equipamento.nome,
       tipo: equipamento.tipo,
-      custo_uso: equipamento.custo_uso.toString(),
+      custo_uso: formatCurrencyFromNumber(equipamento.custo_uso),
     });
     setEditingId(equipamento.id);
     setShowForm(true);
@@ -90,7 +96,7 @@ const Equipamentos: React.FC = () => {
       <div className="crud-header">
         <h1>Equipamentos</h1>
         <button className="btn btn-primary" onClick={() => {
-          setFormData({ nome: '', tipo: '', custo_uso: '' });
+          resetForm();
           setEditingId(null);
           setShowForm(!showForm);
         }}>
@@ -117,6 +123,7 @@ const Equipamentos: React.FC = () => {
                   required
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, nome: normalizeSingleLineText(e.target.value) })}
                   placeholder="Nome do equipamento"
                 />
               </div>
@@ -127,18 +134,19 @@ const Equipamentos: React.FC = () => {
                   required
                   value={formData.tipo}
                   onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, tipo: normalizeSingleLineText(e.target.value) })}
                   placeholder="Tipo de equipamento"
                 />
               </div>
               <div className="form-group">
                 <label>Custo de Uso (R$/dia) *</label>
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="numeric"
                   required
                   value={formData.custo_uso}
-                  onChange={(e) => setFormData({ ...formData, custo_uso: e.target.value })}
-                  placeholder="0.00"
+                  onChange={(e) => setFormData({ ...formData, custo_uso: maskCurrency(e.target.value) })}
+                  placeholder="0,00"
                 />
               </div>
             </div>
@@ -152,7 +160,7 @@ const Equipamentos: React.FC = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingId(null);
-                  setFormData({ nome: '', tipo: '', custo_uso: '' });
+                  resetForm();
                 }}
               >
                 Cancelar
@@ -177,12 +185,7 @@ const Equipamentos: React.FC = () => {
               <tr key={equipamento.id}>
                 <td className="font-weight-600">{equipamento.nome}</td>
                 <td>{equipamento.tipo}</td>
-                <td>
-                  R$ {equipamento.custo_uso.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
+                <td>{formatBRL(equipamento.custo_uso)}</td>
                 <td className="actions">
                   <button
                     className="btn-icon btn-edit"

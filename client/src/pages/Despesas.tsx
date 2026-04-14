@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import api from '../config/api';
+import { formatBRL, formatCurrencyFromNumber, maskCurrency, normalizeDateInput, normalizeMultilineText, parseCurrency } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Obra {
@@ -27,10 +28,15 @@ const Despesas: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     tipo: '',
+    tipo_outro: '',
     descricao: '',
     valor: '',
     data: '',
   });
+
+  const resetForm = () => {
+    setFormData({ tipo: '', tipo_outro: '', descricao: '', valor: '', data: '' });
+  };
 
   useEffect(() => {
     fetchObras();
@@ -66,10 +72,21 @@ const Despesas: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const tipoOutro = normalizeMultilineText(formData.tipo_outro);
+      const descricaoBase = normalizeMultilineText(formData.descricao);
+      const descricaoCompleta =
+        formData.tipo === 'outro' && tipoOutro
+          ? descricaoBase
+            ? `Outro (${tipoOutro}) - ${descricaoBase}`
+            : `Outro (${tipoOutro})`
+          : descricaoBase;
+
       const submitData = {
-        ...formData,
+        tipo: formData.tipo,
+        descricao: descricaoCompleta,
         obra_id: parseInt(obraId),
-        valor: parseFloat(formData.valor),
+        valor: parseCurrency(formData.valor),
+        data: normalizeDateInput(formData.data),
       };
 
       if (editingId) {
@@ -77,7 +94,7 @@ const Despesas: React.FC = () => {
       } else {
         await api.createDespesa(submitData);
       }
-      setFormData({ tipo: '', descricao: '', valor: '', data: '' });
+      resetForm();
       setEditingId(null);
       setShowForm(false);
       fetchDespesas();
@@ -87,11 +104,16 @@ const Despesas: React.FC = () => {
   };
 
   const handleEdit = (despesa: Despesa) => {
+    const matchTipoOutro = despesa.tipo === 'outro'
+      ? despesa.descricao?.match(/^Outro \((.+?)\)(?: - (.*))?$/)
+      : null;
+
     setFormData({
       tipo: despesa.tipo,
-      descricao: despesa.descricao,
-      valor: despesa.valor.toString(),
-      data: despesa.data,
+      tipo_outro: matchTipoOutro?.[1] ?? '',
+      descricao: matchTipoOutro?.[2] ?? despesa.descricao,
+      valor: formatCurrencyFromNumber(despesa.valor),
+      data: normalizeDateInput(despesa.data),
     });
     setEditingId(despesa.id);
     setShowForm(true);
@@ -149,7 +171,7 @@ const Despesas: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ margin: 0 }}>Despesas da Obra</h2>
             <button className="btn btn-primary" onClick={() => {
-              setFormData({ tipo: '', descricao: '', valor: '', data: '' });
+              resetForm();
               setEditingId(null);
               setShowForm(!showForm);
             }}>
@@ -167,7 +189,13 @@ const Despesas: React.FC = () => {
                     <select
                       required
                       value={formData.tipo}
-                      onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          tipo: e.target.value,
+                          tipo_outro: e.target.value === 'outro' ? formData.tipo_outro : '',
+                        })
+                      }
                     >
                       <option value="">Selecione um tipo</option>
                       <option value="material">Material</option>
@@ -177,15 +205,28 @@ const Despesas: React.FC = () => {
                       <option value="outro">Outro</option>
                     </select>
                   </div>
+                  {formData.tipo === 'outro' && (
+                    <div className="form-group">
+                      <label>Qual despesa? *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.tipo_outro}
+                        onChange={(e) => setFormData({ ...formData, tipo_outro: e.target.value })}
+                        onBlur={(e) => setFormData({ ...formData, tipo_outro: normalizeMultilineText(e.target.value) })}
+                        placeholder="Ex.: Frete, hospedagem, taxa..."
+                      />
+                    </div>
+                  )}
                   <div className="form-group">
                     <label>Valor *</label>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
+                      inputMode="numeric"
                       required
                       value={formData.valor}
-                      onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-                      placeholder="0.00"
+                      onChange={(e) => setFormData({ ...formData, valor: maskCurrency(e.target.value) })}
+                      placeholder="0,00"
                     />
                   </div>
                   <div className="form-group">
@@ -194,7 +235,7 @@ const Despesas: React.FC = () => {
                       type="date"
                       required
                       value={formData.data}
-                      onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, data: normalizeDateInput(e.target.value) })}
                     />
                   </div>
                   <div className="form-group full-width">
@@ -202,6 +243,7 @@ const Despesas: React.FC = () => {
                     <textarea
                       value={formData.descricao}
                       onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, descricao: normalizeMultilineText(e.target.value) })}
                       placeholder="Descrição da despesa"
                       style={{ minHeight: '100px', fontFamily: 'inherit' }}
                     ></textarea>
@@ -217,7 +259,7 @@ const Despesas: React.FC = () => {
                     onClick={() => {
                       setShowForm(false);
                       setEditingId(null);
-                      setFormData({ tipo: '', descricao: '', valor: '', data: '' });
+                      resetForm();
                     }}
                   >
                     Cancelar
@@ -244,7 +286,7 @@ const Despesas: React.FC = () => {
                     <td>{new Date(despesa.data).toLocaleDateString('pt-BR')}</td>
                     <td className="font-weight-600">{despesa.tipo}</td>
                     <td>{despesa.descricao}</td>
-                    <td>R$ {despesa.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>{formatBRL(despesa.valor)}</td>
                     <td className="actions">
                       <button
                         className="btn-icon btn-edit"

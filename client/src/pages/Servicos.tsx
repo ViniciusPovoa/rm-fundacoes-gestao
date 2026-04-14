@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import api from '../config/api';
+import { formatBRL, formatCurrencyFromNumber, formatDecimal, maskCurrency, maskDecimal, normalizeMultilineText, parseCurrency, parseDecimal } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Obra {
@@ -13,6 +14,9 @@ interface Servico {
   obra_id: number;
   tipo: string;
   descricao: string;
+  unidade: string;
+  quantidade: number;
+  preco_unitario: number;
   valor_previsto: number;
   valor_realizado: number;
 }
@@ -27,10 +31,23 @@ const Servicos: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     tipo: '',
+    unidade: 'UN',
+    quantidade: '',
+    preco_unitario: '',
     descricao: '',
-    valor_previsto: '',
     valor_realizado: '',
   });
+
+  const resetForm = () => {
+    setFormData({
+      tipo: '',
+      unidade: 'UN',
+      quantidade: '',
+      preco_unitario: '',
+      descricao: '',
+      valor_realizado: '',
+    });
+  };
 
   useEffect(() => {
     fetchObras();
@@ -66,11 +83,19 @@ const Servicos: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const quantidade = parseDecimal(formData.quantidade);
+      const precoUnitario = parseCurrency(formData.preco_unitario);
+      const valorPrevisto = quantidade * precoUnitario;
+
       const submitData = {
-        ...formData,
+        tipo: formData.tipo,
+        unidade: formData.unidade,
+        quantidade,
+        preco_unitario: precoUnitario,
+        descricao: normalizeMultilineText(formData.descricao),
         obra_id: parseInt(obraId),
-        valor_previsto: parseFloat(formData.valor_previsto),
-        valor_realizado: parseFloat(formData.valor_realizado),
+        valor_previsto: valorPrevisto,
+        valor_realizado: parseCurrency(formData.valor_realizado),
       };
 
       if (editingId) {
@@ -78,7 +103,7 @@ const Servicos: React.FC = () => {
       } else {
         await api.createServico(submitData);
       }
-      setFormData({ tipo: '', descricao: '', valor_previsto: '', valor_realizado: '' });
+      resetForm();
       setEditingId(null);
       setShowForm(false);
       fetchServicos();
@@ -90,9 +115,11 @@ const Servicos: React.FC = () => {
   const handleEdit = (servico: Servico) => {
     setFormData({
       tipo: servico.tipo,
+      unidade: servico.unidade || 'UN',
+      quantidade: formatDecimal(servico.quantidade || 0),
+      preco_unitario: formatCurrencyFromNumber(servico.preco_unitario || servico.valor_previsto || 0),
       descricao: servico.descricao,
-      valor_previsto: servico.valor_previsto.toString(),
-      valor_realizado: servico.valor_realizado.toString(),
+      valor_realizado: formatCurrencyFromNumber(servico.valor_realizado),
     });
     setEditingId(servico.id);
     setShowForm(true);
@@ -112,6 +139,8 @@ const Servicos: React.FC = () => {
   if (loading) {
     return <div className="crud-page loading"><div className="spinner"></div></div>;
   }
+
+  const totalPrevistoFormulario = parseDecimal(formData.quantidade) * parseCurrency(formData.preco_unitario);
 
   return (
     <div className="crud-page">
@@ -150,7 +179,7 @@ const Servicos: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ margin: 0 }}>Serviços da Obra</h2>
             <button className="btn btn-primary" onClick={() => {
-              setFormData({ tipo: '', descricao: '', valor_previsto: '', valor_realizado: '' });
+              resetForm();
               setEditingId(null);
               setShowForm(!showForm);
             }}>
@@ -179,25 +208,54 @@ const Servicos: React.FC = () => {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label>Valor Previsto *</label>
+                    <label>Unidade *</label>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       required
-                      value={formData.valor_previsto}
-                      onChange={(e) => setFormData({ ...formData, valor_previsto: e.target.value })}
-                      placeholder="0.00"
+                      value={formData.unidade}
+                      onChange={(e) => setFormData({ ...formData, unidade: e.target.value.toUpperCase().slice(0, 20) })}
+                      placeholder="UN, MTS, M2..."
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Quantidade *</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      required
+                      value={formData.quantidade}
+                      onChange={(e) => setFormData({ ...formData, quantidade: maskDecimal(e.target.value, 2) })}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Preço Unitário *</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      required
+                      value={formData.preco_unitario}
+                      onChange={(e) => setFormData({ ...formData, preco_unitario: maskCurrency(e.target.value) })}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Total Previsto</label>
+                    <input
+                      type="text"
+                      value={formatBRL(totalPrevistoFormulario)}
+                      readOnly
                     />
                   </div>
                   <div className="form-group">
                     <label>Valor Realizado *</label>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
+                      inputMode="numeric"
                       required
                       value={formData.valor_realizado}
-                      onChange={(e) => setFormData({ ...formData, valor_realizado: e.target.value })}
-                      placeholder="0.00"
+                      onChange={(e) => setFormData({ ...formData, valor_realizado: maskCurrency(e.target.value) })}
+                      placeholder="0,00"
                     />
                   </div>
                   <div className="form-group full-width">
@@ -205,6 +263,7 @@ const Servicos: React.FC = () => {
                     <textarea
                       value={formData.descricao}
                       onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, descricao: normalizeMultilineText(e.target.value) })}
                       placeholder="Descrição do serviço"
                       style={{ minHeight: '100px', fontFamily: 'inherit' }}
                     ></textarea>
@@ -220,7 +279,7 @@ const Servicos: React.FC = () => {
                     onClick={() => {
                       setShowForm(false);
                       setEditingId(null);
-                      setFormData({ tipo: '', descricao: '', valor_previsto: '', valor_realizado: '' });
+                      resetForm();
                     }}
                   >
                     Cancelar
@@ -235,8 +294,11 @@ const Servicos: React.FC = () => {
               <thead>
                 <tr>
                   <th>Tipo</th>
+                  <th>Unid.</th>
+                  <th>Quant.</th>
+                  <th>P. Unit.</th>
                   <th>Descrição</th>
-                  <th>Valor Previsto</th>
+                  <th>P. Total</th>
                   <th>Valor Realizado</th>
                   <th>Diferença</th>
                   <th>Ações</th>
@@ -248,11 +310,14 @@ const Servicos: React.FC = () => {
                   return (
                     <tr key={servico.id}>
                       <td className="font-weight-600">{servico.tipo}</td>
+                      <td>{servico.unidade || 'UN'}</td>
+                      <td>{formatDecimal(servico.quantidade || 0)}</td>
+                      <td>{formatBRL(servico.preco_unitario || 0)}</td>
                       <td>{servico.descricao}</td>
-                      <td>R$ {servico.valor_previsto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td>R$ {servico.valor_realizado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td>{formatBRL(servico.valor_previsto)}</td>
+                      <td>{formatBRL(servico.valor_realizado)}</td>
                       <td style={{ color: diferenca > 0 ? '#ef4444' : '#10b981', fontWeight: 600 }}>
-                        R$ {diferenca.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatBRL(diferenca)}
                       </td>
                       <td className="actions">
                         <button

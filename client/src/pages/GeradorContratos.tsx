@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Download, Filter, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 import api from '../config/api';
+import { formatBRL, formatDecimal } from '../lib/input-formatters';
 import '../styles/gerador-contratos.css';
 
 interface Obra {
@@ -23,6 +24,9 @@ interface Servico {
   id: number;
   tipo: string;
   descricao: string;
+  unidade: string;
+  quantidade: number;
+  preco_unitario: number;
   valor_previsto: number;
   valor_realizado: number;
 }
@@ -319,13 +323,60 @@ const GeradorContratos: React.FC = () => {
     // Seção 4
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text('4 - DA VALIDADE DA PROPOSTA:', margin, yPosition);
+    doc.setTextColor(55, 65, 81);
+    doc.text(`Obra: ${obraSelecionada.nome}`, 25, yPosition);
+    yPosition += 5;
+    doc.text(`Localização: ${obraSelecionada.localizacao}`, 25, yPosition);
+    yPosition += 5;
+    doc.text(`Data de Início: ${new Date(obraSelecionada.data_inicio).toLocaleDateString('pt-BR')}`, 25, yPosition);
+    yPosition += 5;
+    doc.text(`Data de Término: ${new Date(obraSelecionada.data_fim).toLocaleDateString('pt-BR')}`, 25, yPosition);
+
+    // Seção 3: Serviços
+    yPosition += 15;
+    doc.setFontSize(12);
+    doc.setTextColor(30, 39, 55);
+    doc.text('3. SERVIÇOS A SEREM PRESTADOS', 20, yPosition);
+
+    yPosition += 10;
+    doc.setFontSize(9);
+
+    // Cabeçalho da tabela
+    doc.setFillColor(59, 130, 246);
+    doc.setTextColor(255, 255, 255);
+    doc.rect(20, yPosition, pageWidth - 40, 7, 'F');
+    doc.text('Serviço', 22, yPosition + 5);
+    doc.text('Unid.', 88, yPosition + 5);
+    doc.text('Quant.', 108, yPosition + 5);
+    doc.text('P. Unit', 132, yPosition + 5);
+    doc.text('Total', 168, yPosition + 5);
 
     yPosition += 8;
+    doc.setTextColor(55, 65, 81);
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text('Esta proposta tem validade de 30 (trinta) dias.', margin + 5, yPosition);
+    // Dados da tabela
+    servicosSelecionados.forEach((servico) => {
+      if (yPosition > pageHeight - 30) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      const servicoLabel = `${servico.tipo || 'N/A'} - ${servico.descricao || ''}`.trim();
+      const descricaoWrapped = doc.splitTextToSize(servicoLabel, 60);
+      doc.text(descricaoWrapped, 22, yPosition);
+      doc.text(servico.unidade || 'UN', 90, yPosition);
+      doc.text(formatDecimal(servico.quantidade || 0), 108, yPosition);
+      doc.text(formatBRL(servico.preco_unitario || 0), 132, yPosition);
+      doc.text(formatBRL(servico.valor_previsto), 168, yPosition);
+
+      yPosition += Math.max(8, descricaoWrapped.length * 5);
+    });
+
+    // Seção 4: Valores
+    yPosition += 15;
+    doc.setFontSize(12);
+    doc.setTextColor(30, 39, 55);
+    doc.text('4. VALORES', 20, yPosition);
 
     yPosition += 10;
 
@@ -353,18 +404,11 @@ const GeradorContratos: React.FC = () => {
     yPosition += splitObra.length * 5 + 6;
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text('5.2 - Responsabilidades do contratante:', margin + 5, yPosition);
+    doc.text(formatBRL(totalServicos), pageWidth - 40, yPosition, { align: 'right' });
 
-    yPosition += 6;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text('O fornecimento de funcionários para a retirada de terra.', margin + 10, yPosition);
-
-    yPosition = pageHeight - 40;
-
-    // Assinatura
+    // Seção 5: Condições Gerais
+    yPosition += 35;
+    doc.setTextColor(30, 39, 55);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.text('No aguardo do pronunciamento de V. Sa., desde já estamos ao seu dispor para quaisquer esclarecimentos que se fizerem necessários.', margin, yPosition);
@@ -494,14 +538,17 @@ const GeradorContratos: React.FC = () => {
                     <p>
                       <strong>{servico.tipo}</strong> - {servico.descricao}
                     </p>
-                    <p className="valor">R$ {servico.valor_previsto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p>
+                      {servico.unidade || 'UN'} | {formatDecimal(servico.quantidade || 0)} x {formatBRL(servico.preco_unitario || 0)}
+                    </p>
+                    <p className="valor">{formatBRL(servico.valor_previsto)}</p>
                   </div>
                 ))}
               </div>
 
               <div className="total-servicos">
                 <strong>Total:</strong>
-                <span>R$ {servicosSelecionados.reduce((sum, s) => sum + s.valor_previsto, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <span>{formatBRL(servicosSelecionados.reduce((sum, s) => sum + s.valor_previsto, 0))}</span>
               </div>
             </div>
 

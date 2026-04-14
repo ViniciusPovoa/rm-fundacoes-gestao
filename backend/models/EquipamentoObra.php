@@ -17,7 +17,10 @@ class EquipamentoObra extends BaseModel {
 
     public function getEquipamentosObraDetalhado($obra_id) {
         try {
-            $sql = "SELECT eo.*, e.nome, e.tipo, e.custo_uso 
+            $sql = "SELECT eo.*, 
+                           e.nome AS equipamento_nome, 
+                           e.tipo AS equipamento_tipo, 
+                           e.custo_uso AS equipamento_custo_uso 
                     FROM equipamentos_obras eo 
                     JOIN equipamentos e ON eo.equipamento_id = e.id 
                     WHERE eo.obra_id = ? 

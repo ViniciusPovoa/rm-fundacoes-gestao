@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle, Eye } from 'lucide-react';
 import { Link } from 'wouter';
 import api from '../config/api';
+import { normalizeDateInput, normalizeSingleLineText } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Cliente {
@@ -36,6 +37,17 @@ const Obras: React.FC = () => {
     status: 'planejamento',
   });
 
+  const resetForm = () => {
+    setFormData({
+      nome: '',
+      cliente_id: '',
+      localizacao: '',
+      data_inicio: '',
+      data_fim: '',
+      status: 'planejamento',
+    });
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -60,8 +72,12 @@ const Obras: React.FC = () => {
     e.preventDefault();
     try {
       const submitData = {
-        ...formData,
+        nome: normalizeSingleLineText(formData.nome),
         cliente_id: parseInt(formData.cliente_id),
+        localizacao: normalizeSingleLineText(formData.localizacao),
+        data_inicio: normalizeDateInput(formData.data_inicio),
+        data_fim: normalizeDateInput(formData.data_fim),
+        status: formData.status,
       };
 
       if (editingId) {
@@ -69,14 +85,7 @@ const Obras: React.FC = () => {
       } else {
         await api.createObra(submitData);
       }
-      setFormData({
-        nome: '',
-        cliente_id: '',
-        localizacao: '',
-        data_inicio: '',
-        data_fim: '',
-        status: 'planejamento',
-      });
+      resetForm();
       setEditingId(null);
       setShowForm(false);
       fetchData();
@@ -90,8 +99,8 @@ const Obras: React.FC = () => {
       nome: obra.nome,
       cliente_id: obra.cliente_id.toString(),
       localizacao: obra.localizacao,
-      data_inicio: obra.data_inicio,
-      data_fim: obra.data_fim,
+      data_inicio: normalizeDateInput(obra.data_inicio),
+      data_fim: normalizeDateInput(obra.data_fim),
       status: obra.status,
     });
     setEditingId(obra.id);
@@ -140,14 +149,7 @@ const Obras: React.FC = () => {
       <div className="crud-header">
         <h1>Obras</h1>
         <button className="btn btn-primary" onClick={() => {
-          setFormData({
-            nome: '',
-            cliente_id: '',
-            localizacao: '',
-            data_inicio: '',
-            data_fim: '',
-            status: 'planejamento',
-          });
+          resetForm();
           setEditingId(null);
           setShowForm(!showForm);
         }}>
@@ -174,6 +176,7 @@ const Obras: React.FC = () => {
                   required
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, nome: normalizeSingleLineText(e.target.value) })}
                   placeholder="Nome da obra"
                 />
               </div>
@@ -198,7 +201,7 @@ const Obras: React.FC = () => {
                   type="date"
                   required
                   value={formData.data_inicio}
-                  onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, data_inicio: normalizeDateInput(e.target.value) })}
                 />
               </div>
               <div className="form-group">
@@ -206,7 +209,7 @@ const Obras: React.FC = () => {
                 <input
                   type="date"
                   value={formData.data_fim}
-                  onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, data_fim: normalizeDateInput(e.target.value) })}
                 />
               </div>
               <div className="form-group">
@@ -227,6 +230,7 @@ const Obras: React.FC = () => {
                   type="text"
                   value={formData.localizacao}
                   onChange={(e) => setFormData({ ...formData, localizacao: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, localizacao: normalizeSingleLineText(e.target.value) })}
                   placeholder="Localização da obra"
                 />
               </div>
@@ -241,14 +245,7 @@ const Obras: React.FC = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingId(null);
-                  setFormData({
-                    nome: '',
-                    cliente_id: '',
-                    localizacao: '',
-                    data_inicio: '',
-                    data_fim: '',
-                    status: 'planejamento',
-                  });
+                  resetForm();
                 }}
               >
                 Cancelar

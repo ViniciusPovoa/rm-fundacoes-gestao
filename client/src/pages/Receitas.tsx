@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import api from '../config/api';
+import { formatBRL, formatCurrencyFromNumber, maskCurrency, normalizeDateInput, normalizeMultilineText, parseCurrency } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Obra {
@@ -29,6 +30,10 @@ const Receitas: React.FC = () => {
     data: '',
     descricao: '',
   });
+
+  const resetForm = () => {
+    setFormData({ valor: '', data: '', descricao: '' });
+  };
 
   useEffect(() => {
     fetchObras();
@@ -65,9 +70,10 @@ const Receitas: React.FC = () => {
     e.preventDefault();
     try {
       const submitData = {
-        ...formData,
+        descricao: normalizeMultilineText(formData.descricao),
         obra_id: parseInt(obraId),
-        valor: parseFloat(formData.valor),
+        valor: parseCurrency(formData.valor),
+        data: normalizeDateInput(formData.data),
       };
 
       if (editingId) {
@@ -75,7 +81,7 @@ const Receitas: React.FC = () => {
       } else {
         await api.createReceita(submitData);
       }
-      setFormData({ valor: '', data: '', descricao: '' });
+      resetForm();
       setEditingId(null);
       setShowForm(false);
       fetchReceitas();
@@ -86,8 +92,8 @@ const Receitas: React.FC = () => {
 
   const handleEdit = (receita: Receita) => {
     setFormData({
-      valor: receita.valor.toString(),
-      data: receita.data,
+      valor: formatCurrencyFromNumber(receita.valor),
+      data: normalizeDateInput(receita.data),
       descricao: receita.descricao,
     });
     setEditingId(receita.id);
@@ -146,7 +152,7 @@ const Receitas: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ margin: 0 }}>Receitas da Obra</h2>
             <button className="btn btn-primary" onClick={() => {
-              setFormData({ valor: '', data: '', descricao: '' });
+              resetForm();
               setEditingId(null);
               setShowForm(!showForm);
             }}>
@@ -162,12 +168,12 @@ const Receitas: React.FC = () => {
                   <div className="form-group">
                     <label>Valor *</label>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
+                      inputMode="numeric"
                       required
                       value={formData.valor}
-                      onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-                      placeholder="0.00"
+                      onChange={(e) => setFormData({ ...formData, valor: maskCurrency(e.target.value) })}
+                      placeholder="0,00"
                     />
                   </div>
                   <div className="form-group">
@@ -176,7 +182,7 @@ const Receitas: React.FC = () => {
                       type="date"
                       required
                       value={formData.data}
-                      onChange={(e) => setFormData({ ...formData, data: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, data: normalizeDateInput(e.target.value) })}
                     />
                   </div>
                   <div className="form-group full-width">
@@ -184,6 +190,7 @@ const Receitas: React.FC = () => {
                     <textarea
                       value={formData.descricao}
                       onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                      onBlur={(e) => setFormData({ ...formData, descricao: normalizeMultilineText(e.target.value) })}
                       placeholder="Descrição da receita"
                       style={{ minHeight: '100px', fontFamily: 'inherit' }}
                     ></textarea>
@@ -199,7 +206,7 @@ const Receitas: React.FC = () => {
                     onClick={() => {
                       setShowForm(false);
                       setEditingId(null);
-                      setFormData({ valor: '', data: '', descricao: '' });
+                      resetForm();
                     }}
                   >
                     Cancelar
@@ -224,7 +231,7 @@ const Receitas: React.FC = () => {
                   <tr key={receita.id}>
                     <td>{new Date(receita.data).toLocaleDateString('pt-BR')}</td>
                     <td className="font-weight-600" style={{ color: '#10b981' }}>
-                      R$ {receita.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatBRL(receita.valor)}
                     </td>
                     <td>{receita.descricao}</td>
                     <td className="actions">

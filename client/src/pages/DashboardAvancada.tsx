@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Briefcase, AlertCircle, Calendar } from 'lucide-react';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, Briefcase, AlertCircle } from 'lucide-react';
 import api from '../config/api';
+import { formatBRL } from '../lib/input-formatters';
 import '../styles/dashboard-avancada.css';
 
 interface KPI {
@@ -14,15 +15,13 @@ interface KPI {
 
 interface ObraStatus {
   status: string;
-  count: number;
-  percentage: number;
+  total: number;
 }
 
 const DashboardAvancada: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [selectedPeriod, setSelectedPeriod] = useState('mes');
-  const [obrasSelecionadas, setObrasSelecionadas] = useState<any[]>([]);
 
   useEffect(() => {
     carregarDados();
@@ -56,22 +55,22 @@ const DashboardAvancada: React.FC = () => {
   }
 
   const resumo = dashboardData?.resumo || {};
-  const lucroData = dashboardData?.lucro || [];
-  const statusData = dashboardData?.status || [];
-  const receitasData = dashboardData?.receitas || [];
+  const lucroData = Array.isArray(dashboardData?.lucro) ? dashboardData.lucro : [];
+  const statusData: ObraStatus[] = Array.isArray(dashboardData?.status) ? dashboardData.status : [];
+  const receitasData = Array.isArray(dashboardData?.receitas) ? dashboardData.receitas : [];
 
   // Calcular KPIs
   const kpis: KPI[] = [
     {
       label: 'Receita Total',
-      value: `R$ ${(resumo.receita_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `R$ ${Number(resumo.total_receitas || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       change: 12.5,
       icon: <DollarSign size={24} />,
       color: '#10b981',
     },
     {
       label: 'Despesa Total',
-      value: `R$ ${(resumo.despesa_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `R$ ${Number(resumo.total_despesas || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       change: -5.2,
       icon: <TrendingDown size={24} />,
       color: '#ef4444',
@@ -93,16 +92,16 @@ const DashboardAvancada: React.FC = () => {
   ];
 
   // Preparar dados para gráfico de status
-  const statusChartData = statusData.map((item: any) => ({
+  const statusChartData = statusData.map((item) => ({
     name: item.status,
-    value: item.count,
+    value: Number(item.total || 0),
   }));
 
   // Cores para o gráfico de pizza
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
   // Obras com prejuízo
-  const obrasComPrejuizo = lucroData.filter((obra: any) => obra.lucro < 0);
+  const obrasComPrejuizo = lucroData.filter((obra: any) => Number(obra.lucro_prejuizo || 0) < 0);
 
   return (
     <div className="dashboard-avancada">
@@ -145,12 +144,12 @@ const DashboardAvancada: React.FC = () => {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={receitasData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="periodo" />
+              <XAxis dataKey="nome" />
               <YAxis />
-              <Tooltip formatter={(value) => `R$ ${value.toLocaleString('pt-BR')}`} />
+              <Tooltip formatter={(value) => `R$ ${Number(value || 0).toLocaleString('pt-BR')}`} />
               <Legend />
-              <Bar dataKey="receita" fill="#10b981" name="Receita" />
-              <Bar dataKey="despesa" fill="#ef4444" name="Despesa" />
+              <Bar dataKey="total_receitas" fill="#10b981" name="Receita" />
+              <Bar dataKey="total_despesas" fill="#ef4444" name="Despesa" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -185,10 +184,10 @@ const DashboardAvancada: React.FC = () => {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={lucroData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="nome_obra" angle={-45} textAnchor="end" height={80} />
+              <XAxis dataKey="nome" angle={-45} textAnchor="end" height={80} />
               <YAxis />
-              <Tooltip formatter={(value) => `R$ ${value.toLocaleString('pt-BR')}`} />
-              <Bar dataKey="lucro" fill="#3b82f6" name="Lucro" />
+              <Tooltip formatter={(value) => `R$ ${Number(value || 0).toLocaleString('pt-BR')}`} />
+              <Bar dataKey="lucro_prejuizo" fill="#3b82f6" name="Lucro" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -205,9 +204,9 @@ const DashboardAvancada: React.FC = () => {
               <div key={index} className="alert-item">
                 <div className="alert-icon">⚠️</div>
                 <div className="alert-content">
-                  <p className="alert-title">{obra.nome_obra}</p>
+                  <p className="alert-title">{obra.nome}</p>
                   <p className="alert-description">
-                    Prejuízo de R$ {Math.abs(obra.lucro).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    Prejuízo de R$ {Math.abs(Number(obra.lucro_prejuizo || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
@@ -235,15 +234,15 @@ const DashboardAvancada: React.FC = () => {
             <tbody>
               {lucroData.slice(0, 5).map((obra: any, index: number) => (
                 <tr key={index}>
-                  <td className="obra-name">{obra.nome_obra}</td>
+                  <td className="obra-name">{obra.nome}</td>
                   <td>{obra.cliente_nome}</td>
                   <td>
                     <span className={`status-badge status-${obra.status}`}>{obra.status}</span>
                   </td>
-                  <td className="valor-positivo">R$ {obra.receita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                  <td className="valor-negativo">R$ {obra.despesa.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                  <td className={obra.lucro >= 0 ? 'valor-positivo' : 'valor-negativo'}>
-                    R$ {obra.lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  <td className="valor-positivo">{formatBRL(obra.total_receitas)}</td>
+                  <td className="valor-negativo">{formatBRL(obra.total_despesas)}</td>
+                  <td className={Number(obra.lucro_prejuizo || 0) >= 0 ? 'valor-positivo' : 'valor-negativo'}>
+                    {formatBRL(obra.lucro_prejuizo)}
                   </td>
                   <td>
                     <div className="progress-bar">

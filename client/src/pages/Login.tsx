@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { normalizeUsername } from '../lib/input-formatters';
 import '../styles/login.css';
 
 const Login: React.FC = () => {
@@ -18,7 +19,8 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const success = login(username, password);
+      const normalizedUsername = normalizeUsername(username);
+      const success = login(normalizedUsername, password);
       if (success) {
         setLocation('/');
       } else {
@@ -57,7 +59,8 @@ const Login: React.FC = () => {
               id="username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => setUsername(normalizeUsername(e.target.value))}
+              onBlur={(e) => setUsername(normalizeUsername(e.target.value))}
               placeholder="admin"
               disabled={loading}
               autoFocus

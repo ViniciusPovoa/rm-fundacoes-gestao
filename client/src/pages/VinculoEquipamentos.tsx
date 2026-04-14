@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, AlertCircle, Link as LinkIcon } from 'lucide-react';
 import api from '../config/api';
+import { normalizeDateInput } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Obra {
@@ -18,8 +19,10 @@ interface Equipamento {
 interface VinculoEquipamento {
   id: number;
   equipamento_id: number;
-  equipamento_nome: string;
-  equipamento_tipo: string;
+  equipamento_nome?: string;
+  equipamento_tipo?: string;
+  nome?: string;
+  tipo?: string;
   data_inicio: string;
   data_fim: string;
 }
@@ -37,6 +40,10 @@ const VinculoEquipamentos: React.FC = () => {
     data_inicio: '',
     data_fim: '',
   });
+
+  const resetForm = () => {
+    setFormData({ equipamento_id: '', data_inicio: '', data_fim: '' });
+  };
 
   useEffect(() => {
     fetchData();
@@ -78,12 +85,12 @@ const VinculoEquipamentos: React.FC = () => {
     try {
       const submitData = {
         equipamento_id: parseInt(formData.equipamento_id),
-        data_inicio: formData.data_inicio,
-        data_fim: formData.data_fim,
+        data_inicio: normalizeDateInput(formData.data_inicio),
+        data_fim: normalizeDateInput(formData.data_fim),
       };
 
       await api.vincularEquipamento(parseInt(obraId), submitData);
-      setFormData({ equipamento_id: '', data_inicio: '', data_fim: '' });
+      resetForm();
       setShowForm(false);
       fetchVinculos();
     } catch (err) {
@@ -143,7 +150,7 @@ const VinculoEquipamentos: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ margin: 0 }}>Equipamentos Vinculados</h2>
             <button className="btn btn-primary" onClick={() => {
-              setFormData({ equipamento_id: '', data_inicio: '', data_fim: '' });
+              resetForm();
               setShowForm(!showForm);
             }}>
               <Plus size={20} /> Vincular Equipamento
@@ -176,7 +183,7 @@ const VinculoEquipamentos: React.FC = () => {
                       type="date"
                       required
                       value={formData.data_inicio}
-                      onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, data_inicio: normalizeDateInput(e.target.value) })}
                     />
                   </div>
                   <div className="form-group">
@@ -184,7 +191,7 @@ const VinculoEquipamentos: React.FC = () => {
                     <input
                       type="date"
                       value={formData.data_fim}
-                      onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, data_fim: normalizeDateInput(e.target.value) })}
                     />
                   </div>
                 </div>
@@ -197,7 +204,7 @@ const VinculoEquipamentos: React.FC = () => {
                     className="btn btn-secondary"
                     onClick={() => {
                       setShowForm(false);
-                      setFormData({ equipamento_id: '', data_inicio: '', data_fim: '' });
+                      resetForm();
                     }}
                   >
                     Cancelar
@@ -221,8 +228,8 @@ const VinculoEquipamentos: React.FC = () => {
               <tbody>
                 {vinculos.map((vinculo) => (
                   <tr key={vinculo.id}>
-                    <td className="font-weight-600">{vinculo.equipamento_nome}</td>
-                    <td>{vinculo.equipamento_tipo}</td>
+                    <td className="font-weight-600">{vinculo.equipamento_nome || vinculo.nome || '-'}</td>
+                    <td>{vinculo.equipamento_tipo || vinculo.tipo || '-'}</td>
                     <td>{new Date(vinculo.data_inicio).toLocaleDateString('pt-BR')}</td>
                     <td>{vinculo.data_fim ? new Date(vinculo.data_fim).toLocaleDateString('pt-BR') : '-'}</td>
                     <td className="actions">
