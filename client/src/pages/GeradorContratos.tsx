@@ -69,168 +69,336 @@ const GeradorContratos: React.FC = () => {
   const gerarContratoPDF = () => {
     if (!obraSelecionada) return;
 
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    let yPosition = 20;
+    const margin = 15;
+    let yPosition = margin;
 
-    // Cabeçalho
-    doc.setFontSize(24);
-    doc.setTextColor(30, 39, 55);
-    doc.text('CONTRATO DE PRESTAÇÃO DE SERVIÇOS', pageWidth / 2, yPosition, { align: 'center' });
+    // ===== CABEÇALHO =====
+    // Logo e nome da empresa (esquerda)
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('RM', margin, yPosition);
+    doc.setFontSize(10);
+    doc.text('FUNDAÇÕES', margin, yPosition + 6);
+
+    // Dados da empresa (direita)
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    const rightX = pageWidth - margin - 50;
+    doc.text('R. Atenas, 330', rightX, yPosition);
+    doc.text('Araguari -MG', rightX, yPosition + 5);
+    doc.text('TELEFONE: (34) 99113-6766', rightX, yPosition + 10);
+    doc.text('empresarmfundacoes@gmail.com', rightX, yPosition + 15);
+
+    // Referência
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(`Ref.: ${obraSelecionada.id}/${new Date().getFullYear()}.`, margin, yPosition + 25);
+
+    yPosition += 35;
+
+    // ===== DATA E LOCAL =====
+    const dataAtual = new Date().toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).toUpperCase();
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`ARAGUARI, ${dataAtual}`, pageWidth - margin - 60, yPosition);
 
     yPosition += 15;
-    doc.setFontSize(10);
-    doc.setTextColor(107, 114, 128);
-    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth / 2, yPosition, { align: 'center' });
 
-    // Linha separadora
-    yPosition += 10;
-    doc.setDrawColor(200, 200, 200);
-    doc.line(20, yPosition, pageWidth - 20, yPosition);
+    // ===== DESTINATÁRIO =====
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Ao', margin, yPosition);
+    doc.text(obraSelecionada.cliente_nome, margin, yPosition + 5);
+    doc.text(obraSelecionada.localizacao, margin, yPosition + 10);
 
-    // Seção 1: Partes Contratantes
-    yPosition += 15;
-    doc.setFontSize(12);
-    doc.setTextColor(30, 39, 55);
-    doc.text('1. PARTES CONTRATANTES', 20, yPosition);
+    yPosition += 20;
 
-    yPosition += 10;
-    doc.setFontSize(10);
-    doc.setTextColor(55, 65, 81);
-    doc.text('CONTRATANTE (Cliente):', 20, yPosition);
-    yPosition += 6;
-    doc.text(`Nome: ${obraSelecionada.cliente_nome || 'N/A'}`, 25, yPosition);
-    yPosition += 5;
-    doc.text(`Documento: ${obraSelecionada.cliente_documento || 'N/A'}`, 25, yPosition);
-    yPosition += 5;
-    doc.text(`Email: ${obraSelecionada.cliente_email || 'N/A'}`, 25, yPosition);
-    yPosition += 5;
-    doc.text(`Telefone: ${obraSelecionada.cliente_telefone || 'N/A'}`, 25, yPosition);
+    // ===== TÍTULO =====
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('PROPOSTA DE ORÇAMENTO', pageWidth / 2, yPosition, { align: 'center' });
 
     yPosition += 12;
-    doc.text('CONTRATADA (RM Fundações):', 20, yPosition);
-    yPosition += 6;
-    doc.text('Razão Social: RM Fundações LTDA', 25, yPosition);
-    yPosition += 5;
-    doc.text('CNPJ: XX.XXX.XXX/0001-XX', 25, yPosition);
-    yPosition += 5;
-    doc.text('Email: contato@rmfundacoes.com.br', 25, yPosition);
 
-    // Seção 2: Objeto do Contrato
-    yPosition += 15;
-    doc.setFontSize(12);
-    doc.setTextColor(30, 39, 55);
-    doc.text('2. OBJETO DO CONTRATO', 20, yPosition);
-
-    yPosition += 10;
-    doc.setFontSize(10);
-    doc.setTextColor(55, 65, 81);
-    doc.text(`Obra: ${obraSelecionada.nome}`, 25, yPosition);
-    yPosition += 5;
-    doc.text(`Localização: ${obraSelecionada.localizacao}`, 25, yPosition);
-    yPosition += 5;
-    doc.text(`Data de Início: ${new Date(obraSelecionada.data_inicio).toLocaleDateString('pt-BR')}`, 25, yPosition);
-    yPosition += 5;
-    doc.text(`Data de Término: ${new Date(obraSelecionada.data_fim).toLocaleDateString('pt-BR')}`, 25, yPosition);
-
-    // Seção 3: Serviços
-    yPosition += 15;
-    doc.setFontSize(12);
-    doc.setTextColor(30, 39, 55);
-    doc.text('3. SERVIÇOS A SEREM PRESTADOS', 20, yPosition);
-
-    yPosition += 10;
+    // ===== INTRODUÇÃO =====
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
+    const introText = `Conforme solicitado, a RM Fundações situada à Rua Atenas, 330, Araguari, apresenta a proposta de orçamento para ${obraSelecionada.nome}.`;
+    const splitIntro = doc.splitTextToSize(introText, pageWidth - 2 * margin);
+    doc.text(splitIntro, margin, yPosition);
+    yPosition += splitIntro.length * 5 + 5;
+
+    // ===== SEÇÃO 1: DESCRIÇÃO E PREÇOS =====
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('1 – DESCRIÇÃO E PREÇOS DOS SERVIÇOS:', margin, yPosition);
+    yPosition += 8;
+
+    // ===== TABELA DE SERVIÇOS =====
+    const colWidths = {
+      item: 15,
+      descricao: 70,
+      unid: 20,
+      quant: 20,
+      punit: 25,
+      ptotal: 25,
+    };
 
     // Cabeçalho da tabela
-    doc.setFillColor(59, 130, 246);
-    doc.setTextColor(255, 255, 255);
-    doc.rect(20, yPosition, pageWidth - 40, 7, 'F');
-    doc.text('Tipo de Serviço', 25, yPosition + 5);
-    doc.text('Descrição', 80, yPosition + 5);
-    doc.text('Valor Previsto', 150, yPosition + 5);
-
-    yPosition += 8;
-    doc.setTextColor(55, 65, 81);
-
-    // Dados da tabela
-    servicosSelecionados.forEach((servico) => {
-      if (yPosition > pageHeight - 30) {
-        doc.addPage();
-        yPosition = 20;
-      }
-
-      doc.text(servico.tipo || 'N/A', 25, yPosition);
-      const descricaoWrapped = doc.splitTextToSize(servico.descricao || 'N/A', 65);
-      doc.text(descricaoWrapped, 80, yPosition);
-      doc.text(`R$ ${servico.valor_previsto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 150, yPosition);
-
-      yPosition += 8;
-    });
-
-    // Seção 4: Valores
-    yPosition += 15;
-    doc.setFontSize(12);
-    doc.setTextColor(30, 39, 55);
-    doc.text('4. VALORES', 20, yPosition);
-
-    yPosition += 10;
-    doc.setFontSize(10);
-    const totalServicos = servicosSelecionados.reduce((sum, s) => sum + s.valor_previsto, 0);
-
-    doc.setFillColor(243, 244, 246);
-    doc.rect(20, yPosition - 2, pageWidth - 40, 25, 'F');
-
-    doc.text('Valor Total dos Serviços:', 25, yPosition);
-    doc.setTextColor(16, 185, 129);
     doc.setFont('helvetica', 'bold');
-    doc.text(`R$ ${totalServicos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, pageWidth - 40, yPosition, { align: 'right' });
+    doc.setFontSize(8);
+    doc.setFillColor(200, 200, 200);
 
-    // Seção 5: Condições Gerais
-    yPosition += 35;
-    doc.setTextColor(30, 39, 55);
+    let colX = margin;
+    doc.rect(colX, yPosition, colWidths.item, 7, 'F');
+    doc.text('ITEM', colX + 1, yPosition + 5);
+
+    colX += colWidths.item;
+    doc.rect(colX, yPosition, colWidths.descricao, 7, 'F');
+    doc.text('DESCRIÇÃO', colX + 1, yPosition + 5);
+
+    colX += colWidths.descricao;
+    doc.rect(colX, yPosition, colWidths.unid, 7, 'F');
+    doc.text('UNID.', colX + 1, yPosition + 5);
+
+    colX += colWidths.unid;
+    doc.rect(colX, yPosition, colWidths.quant, 7, 'F');
+    doc.text('QUANT.', colX + 1, yPosition + 5);
+
+    colX += colWidths.quant;
+    doc.rect(colX, yPosition, colWidths.punit, 7, 'F');
+    doc.text('P. UNIT', colX + 1, yPosition + 5);
+
+    colX += colWidths.punit;
+    doc.rect(colX, yPosition, colWidths.ptotal, 7, 'F');
+    doc.text('P. TOTAL', colX + 1, yPosition + 5);
+
+    yPosition += 7;
+
+    // Linhas da tabela
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
-    doc.text('5. CONDIÇÕES GERAIS', 20, yPosition);
+    doc.setFontSize(8);
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.3);
 
-    yPosition += 10;
-    doc.setFontSize(9);
-    doc.setTextColor(55, 65, 81);
-
-    const condicoes = [
-      '• O presente contrato rege-se pelas leis brasileiras, em especial pelo Código Civil Brasileiro.',
-      '• A CONTRATADA se compromete a executar os serviços com qualidade e profissionalismo.',
-      '• O pagamento será realizado conforme cronograma acordado entre as partes.',
-      '• Qualquer alteração no escopo dos serviços deverá ser formalizada por aditivo contratual.',
-      '• A CONTRATADA não se responsabiliza por atrasos causados por força maior.',
-    ];
-
-    condicoes.forEach((condicao) => {
-      if (yPosition > pageHeight - 20) {
+    let totalGeral = 0;
+    servicosSelecionados.forEach((servico, index) => {
+      if (yPosition > pageHeight - 40) {
         doc.addPage();
-        yPosition = 20;
+        yPosition = margin;
       }
-      const wrapped = doc.splitTextToSize(condicao, pageWidth - 40);
-      doc.text(wrapped, 25, yPosition);
-      yPosition += wrapped.length * 4 + 2;
+
+      const itemNum = index + 1;
+      const total = servico.valor_realizado || servico.valor_previsto || 0;
+      totalGeral += total;
+
+      colX = margin;
+
+      // ITEM
+      doc.rect(colX, yPosition, colWidths.item, 6);
+      doc.text(itemNum.toString(), colX + 1, yPosition + 4);
+
+      // DESCRIÇÃO
+      colX += colWidths.item;
+      doc.rect(colX, yPosition, colWidths.descricao, 6);
+      const descTexto = doc.splitTextToSize(servico.descricao, colWidths.descricao - 2);
+      doc.text(descTexto, colX + 1, yPosition + 4);
+
+      // UNID
+      colX += colWidths.descricao;
+      doc.rect(colX, yPosition, colWidths.unid, 6);
+      doc.text('MTS', colX + 1, yPosition + 4);
+
+      // QUANT
+      colX += colWidths.unid;
+      doc.rect(colX, yPosition, colWidths.quant, 6);
+      doc.text('1', colX + 1, yPosition + 4);
+
+      // P. UNIT
+      colX += colWidths.quant;
+      doc.rect(colX, yPosition, colWidths.punit, 6);
+      doc.text(`R$ ${servico.valor_previsto?.toFixed(2) || '0.00'}`, colX + 1, yPosition + 4);
+
+      // P. TOTAL
+      colX += colWidths.punit;
+      doc.rect(colX, yPosition, colWidths.ptotal, 6);
+      doc.text(`R$ ${total.toFixed(2)}`, colX + 1, yPosition + 4);
+
+      yPosition += 6;
     });
 
-    // Assinaturas
-    yPosition += 20;
+    // Total geral
+    doc.setFont('helvetica', 'bold');
+    colX = margin + colWidths.item + colWidths.descricao + colWidths.unid + colWidths.quant + colWidths.punit;
+    doc.rect(colX, yPosition, colWidths.ptotal, 6, 'F');
+    doc.text(`R$ ${totalGeral.toFixed(2)}`, colX + 1, yPosition + 4);
+
+    yPosition += 10;
+
+    // ===== OBSERVAÇÕES =====
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('DISPONIBILIDADE PARA A OBRA: IMEDIATAMENTE APÓS A ACEITAÇÃO.', margin, yPosition);
+
+    yPosition += 10;
+
+    // ===== OBSERVAÇÕES GERAIS =====
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('OBSERVAÇÕES', margin, yPosition);
+
+    yPosition += 6;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    const obs1 = '1) Os serviços serão cobrados com base nos preços unitários acima e nos quantitativos executados, conforme medição elaborada em conjunto com o cliente;';
+    const splitObs1 = doc.splitTextToSize(obs1, pageWidth - 2 * margin - 5);
+    doc.text(splitObs1, margin + 5, yPosition);
+    yPosition += splitObs1.length * 4 + 3;
+
+    const obs2 = '2) Caso o equipamento fique parado por responsabilidade do contratante, serão cobradas as horas improdutivas.';
+    const splitObs2 = doc.splitTextToSize(obs2, pageWidth - 2 * margin - 5);
+    doc.text(splitObs2, margin + 5, yPosition);
+
+    // ===== PÁGINA 2 =====
+    doc.addPage();
+    yPosition = margin;
+
+    // Cabeçalho página 2
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.setTextColor(30, 39, 55);
+    doc.text('2 – DO PREÇO DOS SERVIÇOS:', margin, yPosition);
 
-    doc.text('_____________________________', 30, yPosition);
     yPosition += 8;
-    doc.text('Assinatura - CONTRATANTE', 30, yPosition);
 
-    doc.text('_____________________________', 120, yPosition - 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    const precoText = 'O preço total dos serviços será a somatória de quilômetros rodados referente ao deslocamento do equipamento e das metragens escavadas medidas em conjunto com o contratante.';
+    const splitPreco = doc.splitTextToSize(precoText, pageWidth - 2 * margin);
+    doc.text(splitPreco, margin, yPosition);
+    yPosition += splitPreco.length * 5 + 8;
+
+    // Seção 3
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('3 - DOS PRAZOS:', margin, yPosition);
+
     yPosition += 8;
-    doc.text('Assinatura - CONTRATADA', 120, yPosition - 8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('3.1 – As obras terão início após a emissão da ordem de serviço.', margin + 5, yPosition);
+    yPosition += 6;
+
+    doc.text('3.2 - O pagamento será da seguinte forma:', margin + 5, yPosition);
+    yPosition += 6;
+
+    doc.text('Medições após os serviços realizados de cada mês trabalhado ou de cada etapa concluída.', margin + 10, yPosition);
+    yPosition += 6;
+
+    doc.text('3.3 – Forma de pagamento do serviço: À vista.', margin + 5, yPosition);
+    yPosition += 6;
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('3.4 – Mobilização, pagamento imediato;', margin + 5, yPosition);
+
+    yPosition += 10;
+
+    // Seção 4
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('4 - DA VALIDADE DA PROPOSTA:', margin, yPosition);
+
+    yPosition += 8;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Esta proposta tem validade de 30 (trinta) dias.', margin + 5, yPosition);
+
+    yPosition += 10;
+
+    // Seção 5
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('5 – DESCRIÇÕES GERAIS:', margin, yPosition);
+
+    yPosition += 8;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('5.1 - Responsabilidades RM Fundações:', margin + 5, yPosition);
+
+    yPosition += 6;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Executar os serviços com a melhor qualidade e profissionalismo.', margin + 10, yPosition);
+    yPosition += 6;
+
+    const obraText = `Obra a ser executada à empresa ${obraSelecionada.cliente_nome} em ${obraSelecionada.localizacao} com toda a documentação necessária.`;
+    const splitObra = doc.splitTextToSize(obraText, pageWidth - 2 * margin - 10);
+    doc.text(splitObra, margin + 10, yPosition);
+    yPosition += splitObra.length * 5 + 6;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('5.2 - Responsabilidades do contratante:', margin + 5, yPosition);
+
+    yPosition += 6;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('O fornecimento de funcionários para a retirada de terra.', margin + 10, yPosition);
+
+    yPosition = pageHeight - 40;
+
+    // Assinatura
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('No aguardo do pronunciamento de V. Sa., desde já estamos ao seu dispor para quaisquer esclarecimentos que se fizerem necessários.', margin, yPosition);
+
+    yPosition += 10;
+
+    doc.text('Atenciosamente,', margin, yPosition);
+
+    yPosition += 15;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('RM Fundações.', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 6;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Romulo Roberto Paulino de Melo', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+
+    doc.setFont('helvetica', 'italic');
+    doc.text('Sócio Administrador', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 255);
+    doc.textWithLink('www.rmperfuracoes.com.br', pageWidth / 2, yPosition, { pageNumber: 1 });
+    doc.setTextColor(0, 0, 0);
+    yPosition += 5;
+
+    doc.text('(34) 9 9113 - 6766', pageWidth / 2, yPosition, { align: 'center' });
 
     // Salvar PDF
-    doc.save(`Contrato_${obraSelecionada.nome.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
+    doc.save(`Orcamento_${obraSelecionada.nome.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
     setShowModal(false);
   };
 
