@@ -58,11 +58,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
-              <Link key={item.path} href={item.path}>
-                <a className={`nav-item ${isActive(item.path) ? 'active' : ''}`}>
-                  <Icon size={20} />
-                  {sidebarOpen && <span>{item.label}</span>}
-                </a>
+              <Link
+                key={item.path}
+                href={item.path}
+                className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+              >
+                <Icon size={20} />
+                {sidebarOpen && <span>{item.label}</span>}
               </Link>
             );
           })}

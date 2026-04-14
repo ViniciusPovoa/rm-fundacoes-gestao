@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Download, Filter, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 import api from '../config/api';
-import { formatBRL, formatDecimal } from '../lib/input-formatters';
+import { formatBRL, formatDecimal, toNumber } from '../lib/input-formatters';
 import '../styles/gerador-contratos.css';
 
 interface Obra {
@@ -31,6 +31,14 @@ interface Servico {
   valor_realizado: number;
 }
 
+const normalizeServico = (servico: Servico): Servico => ({
+  ...servico,
+  quantidade: toNumber(servico.quantidade),
+  preco_unitario: toNumber(servico.preco_unitario),
+  valor_previsto: toNumber(servico.valor_previsto),
+  valor_realizado: toNumber(servico.valor_realizado),
+});
+
 const GeradorContratos: React.FC = () => {
   const [obras, setObras] = useState<Obra[]>([]);
   const [servicosSelecionados, setServicosSelecionados] = useState<Servico[]>([]);
@@ -58,7 +66,7 @@ const GeradorContratos: React.FC = () => {
   const carregarServicos = async (obraId: number) => {
     try {
       const response = await api.getServicosPorObra(obraId);
-      setServicosSelecionados(response.data || []);
+      setServicosSelecionados((response.data || []).map(normalizeServico));
     } catch (error) {
       console.error('Erro ao carregar serviços:', error);
     }
@@ -72,6 +80,11 @@ const GeradorContratos: React.FC = () => {
 
   const gerarContratoPDF = () => {
     if (!obraSelecionada) return;
+
+    const servicosNormalizados = servicosSelecionados.map(normalizeServico);
+    const totalServicos = servicosNormalizados.reduce((sum, servico) => {
+      return sum + (servico.valor_realizado || servico.valor_previsto || 0);
+    }, 0);
 
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -198,7 +211,7 @@ const GeradorContratos: React.FC = () => {
     doc.setLineWidth(0.3);
 
     let totalGeral = 0;
-    servicosSelecionados.forEach((servico, index) => {
+    servicosNormalizados.forEach((servico, index) => {
       if (yPosition > pageHeight - 40) {
         doc.addPage();
         yPosition = margin;
@@ -233,7 +246,7 @@ const GeradorContratos: React.FC = () => {
       // P. UNIT
       colX += colWidths.quant;
       doc.rect(colX, yPosition, colWidths.punit, 6);
-      doc.text(`R$ ${servico.valor_previsto?.toFixed(2) || '0.00'}`, colX + 1, yPosition + 4);
+      doc.text(`R$ ${servico.valor_previsto.toFixed(2)}`, colX + 1, yPosition + 4);
 
       // P. TOTAL
       colX += colWidths.punit;
@@ -355,7 +368,7 @@ const GeradorContratos: React.FC = () => {
     doc.setTextColor(55, 65, 81);
 
     // Dados da tabela
-    servicosSelecionados.forEach((servico) => {
+    servicosNormalizados.forEach((servico) => {
       if (yPosition > pageHeight - 30) {
         doc.addPage();
         yPosition = 20;
@@ -548,7 +561,7 @@ const GeradorContratos: React.FC = () => {
 
               <div className="total-servicos">
                 <strong>Total:</strong>
-                <span>{formatBRL(servicosSelecionados.reduce((sum, s) => sum + s.valor_previsto, 0))}</span>
+                <span>{formatBRL(servicosSelecionados.reduce((sum, s) => sum + toNumber(s.valor_previsto), 0))}</span>
               </div>
             </div>
 

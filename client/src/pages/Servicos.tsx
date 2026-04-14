@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import api from '../config/api';
-import { formatBRL, formatCurrencyFromNumber, formatDecimal, maskCurrency, maskDecimal, normalizeMultilineText, parseCurrency, parseDecimal } from '../lib/input-formatters';
+import { formatBRL, formatCurrencyFromNumber, formatDecimal, maskCurrency, maskDecimal, normalizeMultilineText, parseCurrency, parseDecimal, toNumber } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Obra {
@@ -20,6 +20,14 @@ interface Servico {
   valor_previsto: number;
   valor_realizado: number;
 }
+
+const normalizeServico = (servico: Servico): Servico => ({
+  ...servico,
+  quantidade: toNumber(servico.quantidade),
+  preco_unitario: toNumber(servico.preco_unitario),
+  valor_previsto: toNumber(servico.valor_previsto),
+  valor_realizado: toNumber(servico.valor_realizado),
+});
 
 const Servicos: React.FC = () => {
   const [obras, setObras] = useState<Obra[]>([]);
@@ -74,7 +82,7 @@ const Servicos: React.FC = () => {
   const fetchServicos = async () => {
     try {
       const response = await api.getServicosPorObra(parseInt(obraId));
-      setServicos(response.data || []);
+      setServicos((response.data || []).map(normalizeServico));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar serviços');
     }

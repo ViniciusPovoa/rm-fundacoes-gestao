@@ -77,6 +77,20 @@ export function formatBRL(value: number | string | null | undefined) {
   return `R$ ${formatCurrencyFromNumber(value || 0)}`;
 }
 
+export function toNumber(value: number | string | null | undefined) {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  if (value === null || value === undefined || value === "") {
+    return 0;
+  }
+
+  const normalized = String(value).replace(/\./g, "").replace(",", ".");
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export function parseCurrency(value: string) {
   const digits = onlyDigits(value);
 
