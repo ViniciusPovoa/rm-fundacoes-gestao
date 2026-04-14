@@ -79,6 +79,7 @@
 - [x] Implementar filtros de obras para seleção
 - [x] Criar template de contrato profissional em PDF
 - [x] Adicionar campos dinâmicos (cliente, obra, serviços, valores)
+- [x] Reformular layout idêntico ao PDF de referência (RM Fundações)
 - [ ] Implementar assinatura digital/eletrônica
 - [ ] Adicionar histórico de contratos gerados
 - [ ] Permitir customização de templates
