@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import api from '../config/api';
-import { formatBRL, formatCurrencyFromNumber, formatDecimal, maskCurrency, maskDecimal, normalizeMultilineText, parseCurrency, parseDecimal, toNumber } from '../lib/input-formatters';
+import { formatBRL, formatCurrencyFromNumber, formatDecimal, maskCurrency, maskDecimal, normalizeMultilineText, normalizeSingleLineText, parseCurrency, parseDecimal, toNumber } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Obra {
@@ -29,6 +29,27 @@ const normalizeServico = (servico: Servico): Servico => ({
   valor_realizado: toNumber(servico.valor_realizado),
 });
 
+const getPrecoUnitarioFormValue = (servico: Servico) => {
+  const precoUnitario = toNumber(servico.preco_unitario);
+
+  if (precoUnitario > 0) {
+    return precoUnitario;
+  }
+
+  const quantidade = toNumber(servico.quantidade);
+  const valorPrevisto = toNumber(servico.valor_previsto);
+
+  if (quantidade > 0) {
+    return valorPrevisto / quantidade;
+  }
+
+  return valorPrevisto;
+};
+
+const SERVICE_TYPE_OPTIONS = ['estaca', 'sondagem', 'escavacao', 'aterro', 'helice', 'apiloamento', 'deslocamento'] as const;
+
+const isDefaultServiceType = (tipo: string) => SERVICE_TYPE_OPTIONS.includes(tipo as typeof SERVICE_TYPE_OPTIONS[number]);
+
 const Servicos: React.FC = () => {
   const [obras, setObras] = useState<Obra[]>([]);
   const [servicos, setServicos] = useState<Servico[]>([]);
@@ -39,6 +60,7 @@ const Servicos: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     tipo: '',
+    tipo_outro: '',
     unidade: 'UN',
     quantidade: '',
     preco_unitario: '',
@@ -49,6 +71,7 @@ const Servicos: React.FC = () => {
   const resetForm = () => {
     setFormData({
       tipo: '',
+      tipo_outro: '',
       unidade: 'UN',
       quantidade: '',
       preco_unitario: '',
@@ -94,16 +117,20 @@ const Servicos: React.FC = () => {
       const quantidade = parseDecimal(formData.quantidade);
       const precoUnitario = parseCurrency(formData.preco_unitario);
       const valorPrevisto = quantidade * precoUnitario;
+      const valorRealizado = formData.valor_realizado.trim();
+      const tipoServico = formData.tipo === 'outro'
+        ? normalizeSingleLineText(formData.tipo_outro)
+        : formData.tipo;
 
       const submitData = {
-        tipo: formData.tipo,
+        tipo: tipoServico,
         unidade: formData.unidade,
         quantidade,
         preco_unitario: precoUnitario,
         descricao: normalizeMultilineText(formData.descricao),
         obra_id: parseInt(obraId),
         valor_previsto: valorPrevisto,
-        valor_realizado: parseCurrency(formData.valor_realizado),
+        ...(valorRealizado ? { valor_realizado: parseCurrency(valorRealizado) } : {}),
       };
 
       if (editingId) {
@@ -121,11 +148,13 @@ const Servicos: React.FC = () => {
   };
 
   const handleEdit = (servico: Servico) => {
+    const tipoPadrao = isDefaultServiceType(servico.tipo);
     setFormData({
-      tipo: servico.tipo,
+      tipo: tipoPadrao ? servico.tipo : 'outro',
+      tipo_outro: tipoPadrao ? '' : servico.tipo,
       unidade: servico.unidade || 'UN',
       quantidade: formatDecimal(servico.quantidade || 0),
-      preco_unitario: formatCurrencyFromNumber(servico.preco_unitario || servico.valor_previsto || 0),
+      preco_unitario: formatCurrencyFromNumber(getPrecoUnitarioFormValue(servico)),
       descricao: servico.descricao,
       valor_realizado: formatCurrencyFromNumber(servico.valor_realizado),
     });
@@ -149,6 +178,35 @@ const Servicos: React.FC = () => {
   }
 
   const totalPrevistoFormulario = parseDecimal(formData.quantidade) * parseCurrency(formData.preco_unitario);
+
+  const getVariacaoServico = (servico: Servico) => {
+    const diferenca = servico.valor_realizado - servico.valor_previsto;
+
+    if (diferenca > 0) {
+      return {
+        valor: diferenca,
+        cor: '#ef4444',
+        descricao: 'Acima do previsto',
+        prefixo: '+',
+      };
+    }
+
+    if (diferenca < 0) {
+      return {
+        valor: Math.abs(diferenca),
+        cor: '#10b981',
+        descricao: 'Abaixo do previsto',
+        prefixo: '-',
+      };
+    }
+
+    return {
+      valor: 0,
+      cor: '#6b7280',
+      descricao: 'Dentro do previsto',
+      prefixo: '',
+    };
+  };
 
   return (
     <div className="crud-page">
@@ -182,6 +240,14 @@ const Servicos: React.FC = () => {
         </select>
       </div>
 
+      {!obraId && (
+        <div className="table-card">
+          <div className="empty-state">
+            <p>Selecione uma obra para visualizar e cadastrar os serviços.</p>
+          </div>
+        </div>
+      )}
+
       {obraId && (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -205,16 +271,36 @@ const Servicos: React.FC = () => {
                     <select
                       required
                       value={formData.tipo}
-                      onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        tipo: e.target.value,
+                        tipo_outro: e.target.value === 'outro' ? formData.tipo_outro : '',
+                      })}
                     >
                       <option value="">Selecione um tipo</option>
                       <option value="estaca">Estaca</option>
                       <option value="sondagem">Sondagem</option>
                       <option value="escavacao">Escavação</option>
                       <option value="aterro">Aterro</option>
+                      <option value="helice">Hélice</option>
+                      <option value="apiloamento">Apiloamento</option>
+                      <option value="deslocamento">Deslocamento</option>
                       <option value="outro">Outro</option>
                     </select>
                   </div>
+                  {formData.tipo === 'outro' && (
+                    <div className="form-group">
+                      <label>Nome do Serviço *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.tipo_outro}
+                        onChange={(e) => setFormData({ ...formData, tipo_outro: e.target.value })}
+                        onBlur={(e) => setFormData({ ...formData, tipo_outro: normalizeSingleLineText(e.target.value) })}
+                        placeholder="Digite o nome do serviço"
+                      />
+                    </div>
+                  )}
                   <div className="form-group">
                     <label>Unidade *</label>
                     <input
@@ -256,15 +342,17 @@ const Servicos: React.FC = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Valor Realizado *</label>
+                    <label>Valor Realizado</label>
                     <input
                       type="text"
                       inputMode="numeric"
-                      required
                       value={formData.valor_realizado}
                       onChange={(e) => setFormData({ ...formData, valor_realizado: maskCurrency(e.target.value) })}
-                      placeholder="0,00"
+                      placeholder={editingId ? '0,00' : 'Deixe em branco para usar o total previsto'}
                     />
+                    <small className="form-help">
+                      Valor efetivamente executado ou faturado. Se deixar em branco ao criar, usamos o total previsto.
+                    </small>
                   </div>
                   <div className="form-group full-width">
                     <label>Descrição</label>
@@ -308,13 +396,13 @@ const Servicos: React.FC = () => {
                   <th>Descrição</th>
                   <th>P. Total</th>
                   <th>Valor Realizado</th>
-                  <th>Diferença</th>
+                  <th>Variação</th>
                   <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {servicos.map((servico) => {
-                  const diferenca = servico.valor_realizado - servico.valor_previsto;
+                  const variacao = getVariacaoServico(servico);
                   return (
                     <tr key={servico.id}>
                       <td className="font-weight-600">{servico.tipo}</td>
@@ -324,8 +412,13 @@ const Servicos: React.FC = () => {
                       <td>{servico.descricao}</td>
                       <td>{formatBRL(servico.valor_previsto)}</td>
                       <td>{formatBRL(servico.valor_realizado)}</td>
-                      <td style={{ color: diferenca > 0 ? '#ef4444' : '#10b981', fontWeight: 600 }}>
-                        {formatBRL(diferenca)}
+                      <td>
+                        <div style={{ color: variacao.cor, fontWeight: 600 }}>
+                          {variacao.prefixo ? `${variacao.prefixo} ${formatBRL(variacao.valor)}` : formatBRL(variacao.valor)}
+                        </div>
+                        <div style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                          {variacao.descricao}
+                        </div>
                       </td>
                       <td className="actions">
                         <button

@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import DashboardAvancada from "./pages/DashboardAvancada";
 import Clientes from "./pages/Clientes";
 import Obras from "./pages/Obras";
+import ObraDetalhes from "./pages/ObraDetalhes";
 import Servicos from "./pages/Servicos";
 import Despesas from "./pages/Despesas";
 import Receitas from "./pages/Receitas";
@@ -20,6 +21,7 @@ import Equipamentos from "./pages/Equipamentos";
 import VinculoEquipamentos from "./pages/VinculoEquipamentos";
 import Relatorios from "./pages/Relatorios";
 import GeradorContratos from "./pages/GeradorContratos";
+import FolhaPagamento from "./pages/FolhaPagamento";
 
 function Router() {
   return (
@@ -31,6 +33,7 @@ function Router() {
             <Switch>
               <Route path="/" component={DashboardAvancada} />
               <Route path="/clientes" component={Clientes} />
+              <Route path="/obras/:id" component={ObraDetalhes} />
               <Route path="/obras" component={Obras} />
               <Route path="/servicos" component={Servicos} />
               <Route path="/despesas" component={Despesas} />
@@ -39,6 +42,7 @@ function Router() {
               <Route path="/vinculo-equipamentos" component={VinculoEquipamentos} />
               <Route path="/relatorios" component={Relatorios} />
               <Route path="/contratos" component={GeradorContratos} />
+              <Route path="/folha-pagamento" component={FolhaPagamento} />
               <Route path="/404" component={NotFound} />
               <Route component={NotFound} />
             </Switch>

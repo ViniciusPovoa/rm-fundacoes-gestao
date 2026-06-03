@@ -63,13 +63,13 @@
 }
 
 .filtro-item select:hover {
-  border-color: #3b82f6;
+  border-color: #dc2626;
 }
 
 .filtro-item select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
 }
 
 /* Grid de Obras */
@@ -143,8 +143,8 @@
 }
 
 .status-badge.status-planejamento {
-  background: #dbeafe;
-  color: #1e40af;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .status-badge.status-em_andamento {
@@ -181,7 +181,7 @@
 .btn-gerar-contrato {
   margin: 16px 20px 20px 20px;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -197,7 +197,7 @@
 
 .btn-gerar-contrato:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 5px 15px rgba(220, 38, 38, 0.28);
 }
 
 .btn-gerar-contrato:active {
@@ -361,6 +361,96 @@
   color: #10b981;
 }
 
+.contract-editor {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.contract-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.contract-editor-header h4 {
+  margin: 0;
+}
+
+.btn-restaurar-texto {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-restaurar-texto:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.contract-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.contract-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contract-field span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.contract-field input,
+.contract-field textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #1f2937;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.contract-field input:focus,
+.contract-field textarea:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.contract-field textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.5;
+}
+
+.contract-field small {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.contract-field-full {
+  grid-column: 1 / -1;
+}
+
 .modal-footer {
   display: flex;
   gap: 12px;
@@ -431,5 +521,14 @@
 
   .modal-content {
     max-width: 100%;
+  }
+
+  .contract-editor-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .contract-editor-grid {
+    grid-template-columns: 1fr;
   }
 }

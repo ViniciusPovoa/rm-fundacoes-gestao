@@ -4,9 +4,35 @@
  * Roteador principal para todas as requisições
  */
 
-header('Access-Control-Allow-Origin: *');
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$isAllowedOrigin = false;
+
+if ($origin !== '') {
+    $originHost = parse_url($origin, PHP_URL_HOST);
+    $originScheme = parse_url($origin, PHP_URL_SCHEME);
+
+    $isLocalOrigin = in_array($originHost, ['localhost', '127.0.0.1'], true);
+    $isTrustedProductionOrigin = (
+        $originScheme === 'https'
+        && is_string($originHost)
+        && (
+            $originHost === 'rmfundacoes.vpdeveloper.com.br'
+            || str_ends_with($originHost, '.vpdeveloper.com.br')
+        )
+    );
+
+    $isAllowedOrigin = $isLocalOrigin || $isTrustedProductionOrigin;
+}
+
+if ($isAllowedOrigin) {
+    header("Access-Control-Allow-Origin: {$origin}");
+    header('Access-Control-Allow-Credentials: true');
+    header('Vary: Origin');
+}
+
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Max-Age: 86400');
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -17,8 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Autoload de classes
 require_once __DIR__ . '/config/Database.php';
 require_once __DIR__ . '/utils/Response.php';
+require_once __DIR__ . '/utils/Auth.php';
+
+Auth::initSession();
 
 // Carregar controllers
+require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/ClienteController.php';
 require_once __DIR__ . '/controllers/ObraController.php';
 require_once __DIR__ . '/controllers/ServicoController.php';
@@ -26,6 +56,7 @@ require_once __DIR__ . '/controllers/DespesaController.php';
 require_once __DIR__ . '/controllers/ReceitaController.php';
 require_once __DIR__ . '/controllers/EquipamentoController.php';
 require_once __DIR__ . '/controllers/DashboardController.php';
+require_once __DIR__ . '/controllers/FolhaPagamentoController.php';
 
 // Parse da URL
 $request_uri = $_SERVER['REQUEST_URI'];
@@ -53,8 +84,48 @@ $input = file_get_contents('php://input');
 $data = !empty($input) ? json_decode($input, true) : [];
 
 try {
+    // RAIZ DA API
+    if ($entity === null || $entity === '') {
+        echo Response::success([
+            'status' => 'online',
+            'api' => 'RM Fundações',
+            'version' => '1.0',
+            'endpoints' => [
+                'auth',
+                'clientes',
+                'obras',
+                'servicos',
+                'despesas',
+                'receitas',
+                'equipamentos',
+                'dashboard',
+                'folha-pagamento',
+            ],
+        ], 'API online');
+    }
+
+    // AUTENTICAÇÃO
+    elseif ($entity === 'auth') {
+        $controller = new AuthController();
+
+        if ($request_method === 'POST' && $id === 'login') {
+            $controller->login($data);
+        } elseif ($request_method === 'POST' && $id === 'logout') {
+            $controller->logout();
+        } elseif ($request_method === 'GET' && $id === 'me') {
+            $controller->me();
+        } else {
+            echo Response::notFound('Endpoint de autenticação não encontrado');
+        }
+    }
+
+    // ROTAS PROTEGIDAS
+    elseif (!Auth::check()) {
+        echo Response::unauthorized('Sessão expirada ou usuário não autenticado');
+    }
+
     // CLIENTES
-    if ($entity === 'clientes') {
+    elseif ($entity === 'clientes') {
         $controller = new ClienteController();
         
         if ($request_method === 'GET') {
@@ -223,6 +294,25 @@ try {
             } elseif ($id === 'despesas-por-tipo') {
                 $controller->despesasPorTipo();
             }
+        }
+    }
+
+    // FOLHA DE PAGAMENTO
+    elseif ($entity === 'folha-pagamento') {
+        $controller = new FolhaPagamentoController();
+
+        if ($request_method === 'GET') {
+            if ($id === null) {
+                $controller->index();
+            } else {
+                $controller->show($id);
+            }
+        } elseif ($request_method === 'POST') {
+            $controller->store($data);
+        } elseif ($request_method === 'PUT' && $id !== null) {
+            $controller->update($id, $data);
+        } elseif ($request_method === 'DELETE' && $id !== null) {
+            $controller->destroy($id);
         }
     }
 

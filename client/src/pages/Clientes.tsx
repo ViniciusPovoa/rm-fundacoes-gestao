@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import api from '../config/api';
-import { maskDocument, maskPhone, normalizeEmail, normalizeSingleLineText } from '../lib/input-formatters';
+import { maskDocument, maskPhone, normalizeEmail, normalizeSingleLineText, onlyDigits } from '../lib/input-formatters';
 import '../styles/crud.css';
 
 interface Cliente {
@@ -19,6 +19,10 @@ const Clientes: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [filters, setFilters] = useState({
+    nome: '',
+    documento: '',
+  });
   const [formData, setFormData] = useState({
     nome: '',
     telefone: '',
@@ -99,6 +103,18 @@ const Clientes: React.FC = () => {
     return <div className="crud-page loading"><div className="spinner"></div></div>;
   }
 
+  const clientesFiltrados = clientes.filter((cliente) => {
+    const nomeFiltro = normalizeSingleLineText(filters.nome).toLowerCase();
+    const documentoFiltro = onlyDigits(filters.documento);
+    const nomeCliente = (cliente.nome || '').toLowerCase();
+    const documentoCliente = onlyDigits(cliente.documento || '');
+
+    const matchNome = !nomeFiltro || nomeCliente.includes(nomeFiltro);
+    const matchDocumento = !documentoFiltro || documentoCliente.includes(documentoFiltro);
+
+    return matchNome && matchDocumento;
+  });
+
   return (
     <div className="crud-page">
       <div className="crud-header">
@@ -118,6 +134,41 @@ const Clientes: React.FC = () => {
           <span>{error}</span>
         </div>
       )}
+
+      <div className="form-card">
+        <h2>Filtros Avançados</h2>
+        <div className="form-grid" style={{ marginBottom: 0 }}>
+          <div className="form-group">
+            <label>Nome</label>
+            <input
+              type="text"
+              value={filters.nome}
+              onChange={(e) => setFilters({ ...filters, nome: e.target.value })}
+              onBlur={(e) => setFilters({ ...filters, nome: normalizeSingleLineText(e.target.value) })}
+              placeholder="Buscar por nome"
+            />
+          </div>
+          <div className="form-group">
+            <label>CPF/CNPJ</label>
+            <input
+              type="text"
+              value={filters.documento}
+              onChange={(e) => setFilters({ ...filters, documento: maskDocument(e.target.value) })}
+              placeholder="Buscar por CPF ou CNPJ"
+            />
+          </div>
+          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+            <label>&nbsp;</label>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setFilters({ nome: '', documento: '' })}
+            >
+              Limpar Filtros
+            </button>
+          </div>
+        </div>
+      </div>
 
       {showForm && (
         <div className="form-card">
@@ -208,7 +259,7 @@ const Clientes: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {clientes.map((cliente) => (
+            {clientesFiltrados.map((cliente) => (
               <tr key={cliente.id}>
                 <td className="font-weight-600">{cliente.nome}</td>
                 <td>{cliente.documento}</td>
@@ -235,9 +286,9 @@ const Clientes: React.FC = () => {
             ))}
           </tbody>
         </table>
-        {clientes.length === 0 && (
+        {clientesFiltrados.length === 0 && (
           <div className="empty-state">
-            <p>Nenhum cliente cadastrado</p>
+            <p>{clientes.length === 0 ? 'Nenhum cliente cadastrado' : 'Nenhum cliente encontrado com os filtros informados'}</p>
           </div>
         )}
       </div>

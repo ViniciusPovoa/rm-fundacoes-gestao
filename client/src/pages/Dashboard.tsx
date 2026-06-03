@@ -82,7 +82,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const COLORS = ['#667eea', '#764ba2', '#f093fb', '#4facfe'];
+  const COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5'];
 
   return (
     <div className="dashboard">
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
       {/* KPI Cards */}
       <div className="kpi-grid">
         <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#667eea' }}>
+          <div className="kpi-icon" style={{ backgroundColor: '#dc2626' }}>
             <Briefcase size={24} />
           </div>
           <div className="kpi-content">
@@ -107,7 +107,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#f093fb' }}>
+          <div className="kpi-icon" style={{ backgroundColor: '#f87171' }}>
             <DollarSign size={24} />
           </div>
           <div className="kpi-content">
@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#4facfe' }}>
+          <div className="kpi-icon" style={{ backgroundColor: '#b91c1c' }}>
             <AlertCircle size={24} />
           </div>
           <div className="kpi-content">
@@ -188,9 +188,9 @@ const Dashboard: React.FC = () => {
               <Line
                 type="monotone"
                 dataKey="lucro_prejuizo"
-                stroke="#667eea"
+                stroke="#dc2626"
                 name="Lucro/Prejuízo"
-                dot={{ fill: '#667eea', r: 4 }}
+                dot={{ fill: '#dc2626', r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -203,7 +203,7 @@ const Dashboard: React.FC = () => {
           <h3>Distribuição de Obras por Status</h3>
           <div className="status-stats">
             <div className="status-item">
-              <span className="status-badge" style={{ backgroundColor: '#667eea' }}></span>
+              <span className="status-badge" style={{ backgroundColor: '#dc2626' }}></span>
               <span>Em Andamento: {dashboardData?.obras_em_andamento || 0}</span>
             </div>
             <div className="status-item">

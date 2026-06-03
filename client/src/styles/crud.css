@@ -43,13 +43,13 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   color: white;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.32);
 }
 
 .btn-secondary {
@@ -74,11 +74,11 @@
 }
 
 .btn-edit {
-  color: #667eea;
+  color: #2563eb;
 }
 
 .btn-edit:hover {
-  background-color: #f0f4ff;
+  background-color: #eff6ff;
 }
 
 .btn-delete {
@@ -141,6 +141,12 @@
   color: #374151;
 }
 
+.form-help {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -156,8 +162,8 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
 }
 
 .form-actions {
@@ -211,9 +217,18 @@
   color: #1f2937;
 }
 
-.crud-table .actions {
-  display: flex;
-  gap: 8px;
+.crud-table td.actions {
+  white-space: nowrap;
+  min-width: 88px;
+}
+
+.crud-table td.actions > * {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.crud-table td.actions > * + * {
+  margin-left: 8px;
 }
 
 .empty-state {
@@ -228,7 +243,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid #e5e7eb;
-  border-top-color: #667eea;
+  border-top-color: #dc2626;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

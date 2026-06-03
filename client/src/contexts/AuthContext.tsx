@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../config/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: { username: string } | null;
-  login: (username: string, password: string) => boolean;
-  logout: () => void;
+  user: { id: number; username: string; nome: string | null } | null;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -12,42 +13,51 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{ username: string } | null>(null);
+  const [user, setUser] = useState<{ id: number; username: string; nome: string | null } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Verificar se há sessão ao carregar
-  useEffect(() => {
-    const storedAuth = localStorage.getItem('auth');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedAuth === 'true' && storedUser) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
-
-  const login = (username: string, password: string): boolean => {
-    // Credenciais fixas
-    const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD = 'admin123';
-
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      const userData = { username };
-      setIsAuthenticated(true);
-      setUser(userData);
-      localStorage.setItem('auth', 'true');
-      localStorage.setItem('user', JSON.stringify(userData));
-      return true;
-    }
-    return false;
+  const applyAuthenticatedUser = (authenticatedUser: { id: number; username: string; nome: string | null } | null) => {
+    setUser(authenticatedUser);
+    setIsAuthenticated(Boolean(authenticatedUser));
   };
 
-  const logout = () => {
+  const clearAuthState = () => {
     setIsAuthenticated(false);
     setUser(null);
-    localStorage.removeItem('auth');
-    localStorage.removeItem('user');
+  };
+
+  useEffect(() => {
+    const loadCurrentSession = async () => {
+      try {
+        const response = await api.getCurrentUser();
+        applyAuthenticatedUser(response.data?.user ?? null);
+      } catch (error) {
+        clearAuthState();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadCurrentSession();
+  }, []);
+
+  const login = async (username: string, password: string): Promise<void> => {
+    const response = await api.login(username, password);
+    const authenticatedUser = response.data?.user ?? null;
+
+    if (!authenticatedUser) {
+      throw new Error('Não foi possível iniciar a sessão');
+    }
+
+    applyAuthenticatedUser(authenticatedUser);
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      await api.logout();
+    } finally {
+      clearAuthState();
+    }
   };
 
   return (

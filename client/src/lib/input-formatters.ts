@@ -86,7 +86,16 @@ export function toNumber(value: number | string | null | undefined) {
     return 0;
   }
 
-  const normalized = String(value).replace(/\./g, "").replace(",", ".");
+  const stringValue = String(value).trim();
+
+  let normalized = stringValue;
+
+  if (stringValue.includes(",") && stringValue.includes(".")) {
+    normalized = stringValue.replace(/\./g, "").replace(",", ".");
+  } else if (stringValue.includes(",")) {
+    normalized = stringValue.replace(",", ".");
+  }
+
   const parsed = Number.parseFloat(normalized);
   return Number.isFinite(parsed) ? parsed : 0;
 }

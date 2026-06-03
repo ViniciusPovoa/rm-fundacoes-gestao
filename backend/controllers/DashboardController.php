@@ -15,7 +15,10 @@ class DashboardController {
      */
     public function resumoGeral() {
         try {
-            $resumo = $this->financeCalculator->calcularResumoGeral();
+            $period = $_GET['period'] ?? null;
+            $resumo = $period
+                ? $this->financeCalculator->calcularResumoPeriodo($period)
+                : $this->financeCalculator->calcularResumoGeral();
             echo Response::success($resumo, 'Resumo geral recuperado com sucesso');
         } catch (Exception $e) {
             echo Response::error($e->getMessage(), 500);
@@ -28,7 +31,8 @@ class DashboardController {
      */
     public function lucroPorObra() {
         try {
-            $lucros = $this->financeCalculator->calcularLucroPorObra();
+            $period = $_GET['period'] ?? null;
+            $lucros = $this->financeCalculator->calcularLucroPorObra($period);
             echo Response::success($lucros, 'Lucro por obra recuperado com sucesso');
         } catch (Exception $e) {
             echo Response::error($e->getMessage(), 500);
@@ -61,24 +65,8 @@ class DashboardController {
      */
     public function receitasDespesas() {
         try {
-            $database = new \Database();
-            $db = $database->getConnection();
-
-            $sql = "SELECT 
-                    o.id,
-                    o.nome,
-                    COALESCE(SUM(CASE WHEN d.id IS NOT NULL THEN d.valor ELSE 0 END), 0) as total_despesas,
-                    COALESCE(SUM(CASE WHEN r.id IS NOT NULL THEN r.valor ELSE 0 END), 0) as total_receitas
-                    FROM obras o
-                    LEFT JOIN despesas d ON o.id = d.obra_id
-                    LEFT JOIN receitas r ON o.id = r.obra_id
-                    GROUP BY o.id, o.nome
-                    ORDER BY o.nome ASC";
-
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
-            $result = $stmt->fetchAll();
-
+            $period = $_GET['period'] ?? null;
+            $result = $this->financeCalculator->calcularReceitasDespesasPorObra($period);
             echo Response::success($result, 'Receitas e despesas recuperadas com sucesso');
         } catch (Exception $e) {
             echo Response::error($e->getMessage(), 500);

@@ -4,13 +4,24 @@
  */
 
 // Usar import.meta.env para Vite (não process.env)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:80/backend/api.php';
+//const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://rmfundacoes.vpdeveloper.com.br/backend/api.php';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sistema.rmfundacoes.com.br/backend/api.php';
 
 interface ApiResponse<T = any> {
   success: boolean;
   message: string;
   data?: T;
   errors?: Record<string, string[]>;
+}
+
+class ApiRequestError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+  }
 }
 
 class ApiClient {
@@ -22,27 +33,68 @@ class ApiClient {
 
   async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    const defaultOptions: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const requestHeaders = {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
     };
 
-    const config = { ...defaultOptions, ...options };
+    const defaultOptions: RequestInit = {
+      credentials: 'include',
+      headers: requestHeaders,
+    };
+
+    const config: RequestInit = {
+      ...defaultOptions,
+      ...options,
+      headers: requestHeaders,
+    };
 
     try {
       const response = await fetch(url, config);
       const data: ApiResponse<T> = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Erro na requisição');
+        throw new ApiRequestError(data.message || 'Erro na requisição', response.status);
       }
 
       return data;
     } catch (error) {
-      console.error('API Error:', error);
+      if (!(error instanceof ApiRequestError) || error.status !== 401) {
+        console.error('API Error:', error);
+      }
       throw error;
     }
+  }
+
+  private withQuery(endpoint: string, params: Record<string, string | number | null | undefined>) {
+    const searchParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        searchParams.set(key, String(value));
+      }
+    });
+
+    const query = searchParams.toString();
+    return query ? `${endpoint}?${query}` : endpoint;
+  }
+
+  // AUTENTICAÇÃO
+  login(username: string, password: string) {
+    return this.request<{ user: { id: number; username: string; nome: string | null } }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+  }
+
+  logout() {
+    return this.request('/auth/logout', {
+      method: 'POST',
+    });
+  }
+
+  getCurrentUser() {
+    return this.request<{ user: { id: number; username: string; nome: string | null } }>('/auth/me');
   }
 
   // CLIENTES
@@ -281,24 +333,53 @@ class ApiClient {
   }
 
   // DASHBOARD
-  getResumoDashboard() {
-    return this.request('/dashboard/resumo-geral');
+  getResumoDashboard(period?: string) {
+    return this.request(this.withQuery('/dashboard/resumo-geral', { period }));
   }
 
-  getLucroPorObra() {
-    return this.request('/dashboard/lucro-por-obra');
+  getLucroPorObra(period?: string) {
+    return this.request(this.withQuery('/dashboard/lucro-por-obra', { period }));
   }
 
   getObrasStatus() {
     return this.request('/dashboard/obras-status');
   }
 
-  getReceitasDespesas() {
-    return this.request('/dashboard/receitas-despesas');
+  getReceitasDespesas(period?: string) {
+    return this.request(this.withQuery('/dashboard/receitas-despesas', { period }));
   }
 
   getDespesasPorTipoDashboard() {
     return this.request('/dashboard/despesas-por-tipo');
+  }
+
+  // FOLHA DE PAGAMENTO
+  getFolhaPagamento(referencia?: string) {
+    return this.request(this.withQuery('/folha-pagamento', { referencia }));
+  }
+
+  getRegistroFolhaPagamento(id: number) {
+    return this.request(`/folha-pagamento/${id}`);
+  }
+
+  createRegistroFolhaPagamento(data: any) {
+    return this.request('/folha-pagamento', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  updateRegistroFolhaPagamento(id: number, data: any) {
+    return this.request(`/folha-pagamento/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  deleteRegistroFolhaPagamento(id: number) {
+    return this.request(`/folha-pagamento/${id}`, {
+      method: 'DELETE',
+    });
   }
 }
 

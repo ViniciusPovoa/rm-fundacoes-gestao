@@ -28,6 +28,12 @@ const Obras: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [filters, setFilters] = useState({
+    nome: '',
+    data: '',
+    status: '',
+    clienteId: '',
+  });
   const [formData, setFormData] = useState({
     nome: '',
     cliente_id: '',
@@ -144,6 +150,20 @@ const Obras: React.FC = () => {
     return <div className="crud-page loading"><div className="spinner"></div></div>;
   }
 
+  const obrasFiltradas = obras.filter((obra) => {
+    const nomeFiltro = normalizeSingleLineText(filters.nome).toLowerCase();
+    const dataFiltro = normalizeDateInput(filters.data);
+    const statusFiltro = filters.status;
+    const clienteIdFiltro = filters.clienteId;
+    const nomeObra = (obra.nome || '').toLowerCase();
+    const matchNome = !nomeFiltro || nomeObra.includes(nomeFiltro);
+    const matchData = !dataFiltro || obra.data_inicio === dataFiltro || obra.data_fim === dataFiltro;
+    const matchStatus = !statusFiltro || obra.status === statusFiltro;
+    const matchCliente = !clienteIdFiltro || String(obra.cliente_id) === clienteIdFiltro;
+
+    return matchNome && matchData && matchStatus && matchCliente;
+  });
+
   return (
     <div className="crud-page">
       <div className="crud-header">
@@ -163,6 +183,66 @@ const Obras: React.FC = () => {
           <span>{error}</span>
         </div>
       )}
+
+      <div className="form-card">
+        <h2>Filtros Avançados</h2>
+        <div className="form-grid" style={{ marginBottom: 0 }}>
+          <div className="form-group">
+            <label>Nome da Obra</label>
+            <input
+              type="text"
+              value={filters.nome}
+              onChange={(e) => setFilters({ ...filters, nome: e.target.value })}
+              onBlur={(e) => setFilters({ ...filters, nome: normalizeSingleLineText(e.target.value) })}
+              placeholder="Buscar por nome"
+            />
+          </div>
+          <div className="form-group">
+            <label>Data</label>
+            <input
+              type="date"
+              value={filters.data}
+              onChange={(e) => setFilters({ ...filters, data: normalizeDateInput(e.target.value) })}
+            />
+          </div>
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+            >
+              <option value="">Todos</option>
+              <option value="planejamento">Planejamento</option>
+              <option value="em_andamento">Em Andamento</option>
+              <option value="finalizada">Finalizada</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Cliente</label>
+            <select
+              value={filters.clienteId}
+              onChange={(e) => setFilters({ ...filters, clienteId: e.target.value })}
+            >
+              <option value="">Todos</option>
+              {clientes.map((cliente) => (
+                <option key={cliente.id} value={cliente.id}>
+                  {cliente.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+            <label>&nbsp;</label>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setFilters({ nome: '', data: '', status: '', clienteId: '' })}
+            >
+              Limpar Filtros
+            </button>
+          </div>
+        </div>
+      </div>
 
       {showForm && (
         <div className="form-card">
@@ -269,7 +349,7 @@ const Obras: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {obras.map((obra) => (
+            {obrasFiltradas.map((obra) => (
               <tr key={obra.id}>
                 <td className="font-weight-600">{obra.nome}</td>
                 <td>{obra.cliente_nome}</td>
@@ -306,9 +386,9 @@ const Obras: React.FC = () => {
             ))}
           </tbody>
         </table>
-        {obras.length === 0 && (
+        {obrasFiltradas.length === 0 && (
           <div className="empty-state">
-            <p>Nenhuma obra cadastrada</p>
+            <p>{obras.length === 0 ? 'Nenhuma obra cadastrada' : 'Nenhuma obra encontrada com os filtros informados'}</p>
           </div>
         )}
       </div>

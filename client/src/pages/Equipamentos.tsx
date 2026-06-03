@@ -17,11 +17,17 @@ const Equipamentos: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [filters, setFilters] = useState({
+    nome: '',
+    tipo: '',
+  });
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     nome: '',
     tipo: '',
     custo_uso: '',
   });
+  const ITEMS_PER_PAGE = 10;
 
   const resetForm = () => {
     setFormData({ nome: '', tipo: '', custo_uso: '' });
@@ -91,6 +97,22 @@ const Equipamentos: React.FC = () => {
     return <div className="crud-page loading"><div className="spinner"></div></div>;
   }
 
+  const equipamentosFiltrados = equipamentos.filter((equipamento) => {
+    const nomeFiltro = normalizeSingleLineText(filters.nome).toLowerCase();
+    const tipoFiltro = normalizeSingleLineText(filters.tipo).toLowerCase();
+    const nomeEquipamento = (equipamento.nome || '').toLowerCase();
+    const tipoEquipamento = (equipamento.tipo || '').toLowerCase();
+
+    const matchNome = !nomeFiltro || nomeEquipamento.includes(nomeFiltro);
+    const matchTipo = !tipoFiltro || tipoEquipamento.includes(tipoFiltro);
+
+    return matchNome && matchTipo;
+  });
+  const totalPages = Math.max(1, Math.ceil(equipamentosFiltrados.length / ITEMS_PER_PAGE));
+  const currentPageSafe = Math.min(currentPage, totalPages);
+  const startIndex = (currentPageSafe - 1) * ITEMS_PER_PAGE;
+  const equipamentosPaginados = equipamentosFiltrados.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   return (
     <div className="crud-page">
       <div className="crud-header">
@@ -110,6 +132,51 @@ const Equipamentos: React.FC = () => {
           <span>{error}</span>
         </div>
       )}
+
+      <div className="form-card">
+        <h2>Filtros Avançados</h2>
+        <div className="form-grid" style={{ marginBottom: 0 }}>
+          <div className="form-group">
+            <label>Nome</label>
+            <input
+              type="text"
+              value={filters.nome}
+              onChange={(e) => {
+                setFilters({ ...filters, nome: e.target.value });
+                setCurrentPage(1);
+              }}
+              onBlur={(e) => setFilters((current) => ({ ...current, nome: normalizeSingleLineText(e.target.value) }))}
+              placeholder="Buscar por nome"
+            />
+          </div>
+          <div className="form-group">
+            <label>Tipo do Equipamento</label>
+            <input
+              type="text"
+              value={filters.tipo}
+              onChange={(e) => {
+                setFilters({ ...filters, tipo: e.target.value });
+                setCurrentPage(1);
+              }}
+              onBlur={(e) => setFilters((current) => ({ ...current, tipo: normalizeSingleLineText(e.target.value) }))}
+              placeholder="Buscar por tipo"
+            />
+          </div>
+          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+            <label>&nbsp;</label>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setFilters({ nome: '', tipo: '' });
+                setCurrentPage(1);
+              }}
+            >
+              Limpar Filtros
+            </button>
+          </div>
+        </div>
+      </div>
 
       {showForm && (
         <div className="form-card">
@@ -181,7 +248,7 @@ const Equipamentos: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {equipamentos.map((equipamento) => (
+            {equipamentosPaginados.map((equipamento) => (
               <tr key={equipamento.id}>
                 <td className="font-weight-600">{equipamento.nome}</td>
                 <td>{equipamento.tipo}</td>
@@ -206,9 +273,37 @@ const Equipamentos: React.FC = () => {
             ))}
           </tbody>
         </table>
-        {equipamentos.length === 0 && (
+        {equipamentosFiltrados.length === 0 && (
           <div className="empty-state">
-            <p>Nenhum equipamento cadastrado</p>
+            <p>{equipamentos.length === 0 ? 'Nenhum equipamento cadastrado' : 'Nenhum equipamento encontrado com os filtros informados'}</p>
+          </div>
+        )}
+        {equipamentosFiltrados.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', padding: '16px 24px', borderTop: '1px solid #e5e7eb', flexWrap: 'wrap' }}>
+            <span style={{ color: '#6b7280', fontSize: '14px' }}>
+              Mostrando {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, equipamentosFiltrados.length)} de {equipamentosFiltrados.length} equipamentos
+            </span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={currentPageSafe === 1}
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              >
+                Anterior
+              </button>
+              <span style={{ minWidth: '90px', textAlign: 'center', fontSize: '14px', color: '#374151' }}>
+                Página {currentPageSafe} de {totalPages}
+              </span>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={currentPageSafe === totalPages}
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              >
+                Próxima
+              </button>
+            </div>
           </div>
         )}
       </div>

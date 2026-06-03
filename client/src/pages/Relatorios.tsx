@@ -239,17 +239,17 @@ const Relatorios: React.FC = () => {
         <title>Relatório Financeiro - RM Fundações</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-          h1 { color: #1e3c72; text-align: center; border-bottom: 3px solid #667eea; padding-bottom: 10px; }
-          h2 { color: #667eea; margin-top: 30px; border-left: 4px solid #667eea; padding-left: 10px; }
+          h1 { color: #7f1d1d; text-align: center; border-bottom: 3px solid #dc2626; padding-bottom: 10px; }
+          h2 { color: #b91c1c; margin-top: 30px; border-left: 4px solid #dc2626; padding-left: 10px; }
           .period { text-align: center; color: #6b7280; margin-bottom: 20px; }
           table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th { background-color: #f0f4ff; color: #1e3c72; padding: 12px; text-align: left; border-bottom: 2px solid #667eea; }
+          th { background-color: #fef2f2; color: #7f1d1d; padding: 12px; text-align: left; border-bottom: 2px solid #dc2626; }
           td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
           tr:nth-child(even) { background-color: #f9fafb; }
-          .summary { background-color: #f0f4ff; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .summary { background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; }
           .summary-item { display: inline-block; margin-right: 30px; margin-bottom: 12px; }
-          .summary-label { font-weight: bold; color: #667eea; }
-          .summary-value { font-size: 18px; color: #1e3c72; }
+          .summary-label { font-weight: bold; color: #b91c1c; }
+          .summary-value { font-size: 18px; color: #7f1d1d; }
           .positive { color: #10b981; }
           .negative { color: #ef4444; }
           .footer { text-align: center; margin-top: 40px; color: #9ca3af; font-size: 12px; }

@@ -145,6 +145,14 @@ const VinculoEquipamentos: React.FC = () => {
         </select>
       </div>
 
+      {!obraId && (
+        <div className="table-card">
+          <div className="empty-state">
+            <p>Selecione uma obra para visualizar e vincular os equipamentos.</p>
+          </div>
+        </div>
+      )}
+
       {obraId && (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
